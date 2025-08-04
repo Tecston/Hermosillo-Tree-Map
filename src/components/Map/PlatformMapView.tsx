@@ -7,7 +7,15 @@ import { useAppContext } from "../../context/AppContext";
 import { FaMapPin } from "react-icons/fa";
 import MarkerCarousel from "./MarkerCarousel";
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+
+mapboxgl.accessToken = TOKEN ?? "";
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+
+if (!import.meta.env.VITE_MAPBOX_TOKEN) {
+  console.error("Falta VITE_MAPBOX_TOKEN en .env.local");
+}
+
 
 interface MapViewProps {
   openModal: (type: "request", coords?: { lat: number; lng: number }) => void;
@@ -125,6 +133,7 @@ const MapView: React.FC<MapViewProps> = ({ openModal }) => {
 
   useEffect(() => {
     if (mapRef.current || !mapContainerRef.current) return;
+    if (mapRef.current || !mapContainerRef.current || !TOKEN) return;
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current!,
@@ -133,6 +142,7 @@ const MapView: React.FC<MapViewProps> = ({ openModal }) => {
       zoom: 15,
       minZoom: 13,
       maxZoom: 18,
+      accessToken: TOKEN,
     });
 
     map.addControl(new mapboxgl.NavigationControl(), "top-right");

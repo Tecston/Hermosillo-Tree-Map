@@ -1,26 +1,10 @@
-// src/components/UI/Sidebar.tsx
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import {
-  MapIcon,
-  LayoutDashboardIcon,
-  ShieldIcon,
-  Layers,
-  ClipboardListIcon,
-  AwardIcon,
-  BookOpenIcon,
-  InfoIcon,
-} from "lucide-react";
+import { MapIcon, LayoutDashboardIcon, Layers, TreePine, X } from "lucide-react";
 import { useAppContext } from "../../context/AppContext";
 
-type ViewType = "map" | "stats" | "map_analytics";
-// | "admin"
-// | "rewards"
-// | "resources"
-// | "about"
-// | "viability";
+type ViewType = "map" | "stats" | "map_analytics" | "trees";
 
-/* definición centralizada */
 const NAV_ITEMS: {
   type: ViewType;
   label: string;
@@ -28,152 +12,81 @@ const NAV_ITEMS: {
   path: string;
   adminOnly?: boolean;
 }[] = [
-  {
-    type: "map",
-    label: "Mapa",
-    icon: (active) => (
-      <MapIcon
-        size={20}
-        className={`mr-2 ${active ? "text-blue-500" : "text-gray-8"}`}
-      />
-    ),
-    path: "/dashboard/map",
-  },
-  {
-    type: "stats",
-    label: "Estadísticas",
-    icon: (active) => (
-      <LayoutDashboardIcon
-        size={20}
-        className={`mr-2 ${active ? "text-green-500" : "text-gray-8"}`}
-      />
-    ),
-    path: "/dashboard/stats",
-  },
-  // {
-  //   type: "admin",
-  //   label: "Administración",
-  //   icon: (active) => (
-  //     <ShieldIcon
-  //       size={20}
-  //       className={`mr-2 ${active ? "text-red-500" : "text-gray-8"}`}
-  //     />
-  //   ),
-  //   path: "/dashboard/admin",
-  //   adminOnly: true,
-  // },
-  {
-    type: "map_analytics",
-    label: "Análisis de Zona",
-    icon: (active) => (
-      <Layers
-        size={20}
-        className={`mr-2 ${active ? "text-blue-500" : "text-gray-8"}`}
-      />
-    ),
-    path: "/dashboard/map_analytics",
-  },
-  //   {
-  //     type: "viability",
-  //     label: "Viabilidad",
-  //     icon: (active) => (
-  //       <ClipboardListIcon
-  //         size={20}
-  //         className={`mr-2 ${active ? "text-orange-500" : "text-gray-8"}`}
-  //       />
-  //     ),
-  //     path: "/dashboard/viability",
-  //   },
-  //   {
-  //     type: "rewards",
-  //     label: "Recompensas",
-  //     icon: (active) => (
-  //       <AwardIcon
-  //         size={20}
-  //         className={`mr-2 ${active ? "text-yellow-500" : "text-gray-8"}`}
-  //       />
-  //     ),
-  //     path: "/dashboard/rewards",
-  //   },
-  //   {
-  //     type: "resources",
-  //     label: "Recursos",
-  //     icon: (active) => (
-  //       <BookOpenIcon
-  //         size={20}
-  //         className={`mr-2 ${active ? "text-cyan-500" : "text-gray-8"}`}
-  //       />
-  //     ),
-  //     path: "/dashboard/resources",
-  //   },
-  //   {
-  //     type: "about",
-  //     label: "Sobre Nosotros",
-  //     icon: (active) => (
-  //       <InfoIcon
-  //         size={20}
-  //         className={`mr-2 ${active ? "text-gray-12" : "text-gray-8"}`}
-  //       />
-  //     ),
-  //     path: "/dashboard/about",
-  //   },
+  { type: "map", label: "Mapa",    icon: a => <MapIcon size={20} className={`${a ? "text-blue-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/map" },
+  { type: "stats", label: "Estadísticas", icon: a => <LayoutDashboardIcon size={20} className={`${a ? "text-green-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/stats" },
+  { type: "map_analytics", label: "Análisis de Zona", icon: a => <Layers size={20} className={`${a ? "text-blue-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/map_analytics" },
+  { type: "trees", label: "Arbolado", icon: a => <TreePine size={20} className={`${a ? "text-green-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/trees" },
 ];
 
-const Sidebar: React.FC = () => {
+const SidebarModal: React.FC = () => {
   const { currentUser } = useAppContext();
   const navigate = useNavigate();
   const { pathname } = useLocation();
+  const [open, setOpen] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // Cierra al hacer clic fuera
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (open && modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [open]);
 
   return (
-    <aside className="flex w-16 flex-col bg-white border-t-1 shadow-md md:w-56">
-      <nav className="flex flex-1 flex-col p-2">
-        {NAV_ITEMS.map((item) => {
-          if (item.adminOnly && !currentUser.isAdmin) return null;
+    <>
+      {/* Botón flotante */}
+      <button
+        onClick={() => setOpen(prev => !prev)}
+        className="fixed top-140 right-10 z-20 p-3 bg-white rounded-full shadow-lg"
+        aria-label={open ? "Cerrar menú" : "Abrir menú"}
+      >
+        {open ? <X size={24} /> : <div className="space-y-1">
+          <span className="block w-6 h-0.5 bg-black" />
+          <span className="block w-6 h-0.5 bg-black" />
+          <span className="block w-6 h-0.5 bg-black" />
+        </div>}
+      </button>
 
-          return (
-            <SidebarItem
-              key={item.type}
-              icon={item.icon}
-              label={item.label}
-              active={pathname === item.path}
-              onClick={() => navigate(item.path)}
-            />
-          );
-        })}
-      </nav>
-
-      <div className="border-t border-gray-200 p-2 text-center md:p-4">
-        <span className="hidden text-xs text-gray-500 md:block">
-          © 2025 CiudadParticipa
-        </span>
-      </div>
-    </aside>
+      {/* Modal desplegable */}
+      {open && (
+        <div
+          ref={modalRef}
+          className="fixed top-103 right-10 z-20 w-64 bg-white rounded-lg shadow-lg overflow-hidden animate-slide-down"
+        >
+          <nav className="flex flex-col">
+            {NAV_ITEMS.map(item => {
+              if (item.adminOnly && !currentUser.isAdmin) return null;
+              const active = pathname === item.path;
+              return (
+                <button
+                  key={item.type}
+                  onClick={() => {
+                    navigate(item.path);
+                    setOpen(false);
+                  }}
+                  className={`flex items-center px-4 py-2 transition-colors duration-150 ${
+                    active ? "bg-blue-50 text-blue-600" : "text-gray-700 hover:bg-gray-100"
+                  }`}
+                >
+                  {item.icon(active)}
+                  <span className="text-sm font-medium">{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+      )}
+    </>
   );
 };
 
-interface SidebarItemProps {
-  icon: (active: boolean) => React.ReactNode;
-  label: string;
-  active: boolean;
-  onClick: () => void;
-}
-const SidebarItem: React.FC<SidebarItemProps> = ({
-  icon,
-  label,
-  active,
-  onClick,
-}) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center p-2 ${
-      active
-        ? "bg-blue-3 text-blue-12 border-1 border-blue-3"
-        : "text-gray-12 border-1 border-white hover:border-1 hover:border-blue-6"
-    }`}
-  >
-    {icon(active)}
-    <span className="hidden md:inline">{label}</span>
-  </button>
-);
+export default SidebarModal;
 
-export default Sidebar;
+/* Añade en tu CSS o tailwind.config:
+.animate-slide-down { animation: slide-down 200ms ease-in-out; }
+@keyframes slide-down { from { opacity:0; transform: translateY(-10px);} to{ opacity:1; transform: translateY(0);} }
+*/

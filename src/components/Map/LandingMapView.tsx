@@ -3,7 +3,13 @@ import React, { useState, useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
+const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+mapboxgl.accessToken = TOKEN ?? "";
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+
+if (!import.meta.env.VITE_MAPBOX_TOKEN) {
+  console.error("Falta VITE_MAPBOX_TOKEN en .env.local");
+}
 
 const categories = [
   { name: "Residencial", color: "#2ECC71" },
@@ -34,7 +40,7 @@ const MapView: React.FC = () => {
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-
+    if (!containerRef.current || mapRef.current || !TOKEN) return;
     const map = new mapboxgl.Map({
       container: containerRef.current,
       style: "mapbox://styles/mapbox/light-v11",
@@ -44,6 +50,8 @@ const MapView: React.FC = () => {
         [-111.04815936921302, 28.994010641531702],
         [-110.8600185000724, 29.166535465688195],
       ],
+
+      accessToken: TOKEN,
     });
 
     mapRef.current = map;
@@ -51,11 +59,12 @@ const MapView: React.FC = () => {
     return () => map.remove();
   }, []);
 
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
+ useEffect(() => {
+  const map = mapRef.current;
+  if (!map) return;
 
-    // Clear existing markers
+  const renderMarkers = () => {
+    // Limpia marcadores previos
     document.querySelectorAll(".mapboxgl-marker").forEach((el) => el.remove());
 
     allPoints.forEach((point) => {
@@ -72,14 +81,29 @@ const MapView: React.FC = () => {
       new mapboxgl.Marker(el)
         .setLngLat([point.lng, point.lat])
         .setPopup(
-          new mapboxgl.Popup().setHTML(`
-          <strong>${point.category}</strong><br/>
-          Lat: ${point.lat.toFixed(4)}, Lng: ${point.lng.toFixed(4)}
-        `)
+          new mapboxgl.Popup().setHTML(
+            `<strong>${point.category}</strong><br/>Lat: ${point.lat.toFixed(
+              4
+            )}, Lng: ${point.lng.toFixed(4)}`
+          )
         )
         .addTo(map);
     });
-  }, [visibleCategories]);
+  };
+
+  // Espera a que el estilo cargue antes de dibujar
+  if (!map.isStyleLoaded()) {
+    map.once("load", renderMarkers);
+  } else {
+    renderMarkers();
+  }
+
+  return () => {
+    map.off("load", renderMarkers);
+    document.querySelectorAll(".mapboxgl-marker").forEach((el) => el.remove());
+  };
+}, [visibleCategories]);
+
 
   const toggleCategory = (cat: string) => {
     setVisibleCategories((prev) => ({ ...prev, [cat]: !prev[cat] }));

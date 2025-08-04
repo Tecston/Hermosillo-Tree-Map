@@ -1,40 +1,34 @@
+// src/App.tsx
 import React, { useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 
 import Header from "./components/UI/Header";
 import Sidebar from "./components/UI/Sidebar";
 import PlatformMapView from "./components/Map/PlatformMapView";
 import DataVisualization from "./components/Dashboard/DataVisualization";
-// import AdminPanel from "./components/Admin/AdminPanel";
-// import Rewards from "./components/Rewards/Rewards";
-// import Resources from "./components/Resources/Resources";
-// import AboutUs from "./components/AboutUs/AboutUs";
 import RequestForm from "./components/Forms/RequestForm";
 import ProjectForm from "./components/Forms/ProjectForm";
 import LandingPage from "./components/Landing/LandingPage";
-// import ViabilityPage from "./pages/ViabilityPage";
 import BlogList from "./components/Blog/BlogList";
 import BlogPost from "./components/Blog/BlogPost";
 import MapAnalytics from "./components/MapAnalytics/MapAnalytics";
 
-import { AppProvider } from "./context/AppContext";
+// Arbolado (demo)
+import TreeDemo from "./components/Map/TreeDemo/TreeDemo";
 
+import { AppProvider } from "./context/AppContext";
 import "./index.css";
 
 export function App() {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalContent, setModalContent] = useState<
-    "request" | "project" | null
-  >(null);
-  const [selectedCoords, setSelectedCoords] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
+  const [modalContent, setModalContent] = useState<"request" | "project" | null>(null);
+  const [selectedCoords, setSelectedCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const openModal = (
     content: "request" | "project",
@@ -42,9 +36,7 @@ export function App() {
   ) => {
     setModalContent(content);
     setIsModalOpen(true);
-    if (coords) {
-      setSelectedCoords(coords);
-    }
+    if (coords) setSelectedCoords(coords);
   };
 
   const closeModal = () => {
@@ -60,7 +52,7 @@ export function App() {
           {/* Página de inicio */}
           <Route path="/" element={<LandingPage />} />
 
-          {/* Blog routes */}
+          {/* Blog */}
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:id" element={<BlogPost />} />
 
@@ -72,23 +64,8 @@ export function App() {
                 <Header />
                 <div className="flex flex-1 overflow-hidden">
                   <Sidebar />
-                  <main className="flex-1 overflow-auto p-4">
-                    <Routes>
-                      <Route path="/" element={<Navigate to="map" replace />} />
-                      <Route
-                        path="map"
-                        element={<PlatformMapView openModal={openModal} />}
-                      />
-                      <Route path="stats" element={<DataVisualization />} />
-                      {/* <Route path="admin" element={<AdminPanel />} /> */}
-                      <Route path="map_analytics" element={<MapAnalytics />} />
-                      {/* Rutas comentadas para futuras implementaciones
-                      <Route path="rewards" element={<Rewards />} />
-                      <Route path="resources" element={<Resources />} />
-                      <Route path="about" element={<AboutUs />} />
-                      <Route path="viability" element={<ViabilityPage />} /> */}
-                    </Routes>
-                  </main>
+                  {/* Main con padding condicional */}
+                  <DashboardMain openModal={openModal} />
                 </div>
 
                 {/* Modal flotante global */}
@@ -124,5 +101,40 @@ export function App() {
     </Router>
   );
 }
+
+/** Separa el <main> para poder usar useLocation y quitar padding en /dashboard/trees */
+const DashboardMain: React.FC<{
+  openModal: (content: "request" | "project", coords?: { lat: number; lng: number }) => void;
+}> = ({ openModal }) => {
+  const { pathname } = useLocation();
+
+  // Rutas donde queremos pantalla completa (sin padding en el main)
+  const isFullScreen =
+    pathname.startsWith("/dashboard/trees") ||
+    pathname.startsWith("/dashboard/map/TreeDemo");
+
+  return (
+    <main className={`flex-1 ${isFullScreen ? "p-0 overflow-hidden" : "p-4 overflow-auto"}`}>
+      <Routes>
+        <Route path="/" element={<Navigate to="map" replace />} />
+
+        {/* Mapa principal de la plataforma */}
+        <Route path="map" element={<PlatformMapView openModal={openModal} />} />
+
+        {/* Estadísticas */}
+        <Route path="stats" element={<DataVisualization />} />
+
+        {/* Análisis de Zona */}
+        <Route path="map_analytics" element={<MapAnalytics />} />
+
+        {/* Arbolado (demo) – principal */}
+        <Route path="trees" element={<TreeDemo />} />
+
+        {/* Alias opcional (si quieres que funcione /dashboard/map/TreeDemo también) */}
+        <Route path="map/TreeDemo" element={<TreeDemo />} />
+      </Routes>
+    </main>
+  );
+};
 
 export default App;

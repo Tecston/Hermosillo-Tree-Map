@@ -3,13 +3,12 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { ChevronsUpDown } from "lucide-react";
 
-mapboxgl.accessToken = (import.meta as any).env?.VITE_MAPBOX_ACCESS_TOKEN;
+const TOKEN = import.meta.env.VITE_MAPBOX_TOKEN as string | undefined;
+if (!TOKEN) console.error("Falta VITE_MAPBOX_TOKEN en .env(.local)");
 
 const AVAILABLE_INDICES = [
   { value: "temperatura", label: "Temperatura" },
   { value: "soil_water", label: "Humedad del Suelo" },
-  { value: "urbano", label: "Urbano" },
-  { value: "vegetacion", label: "Vegetación" },
 ];
 
 import localData from "./data/temp202409.json";
@@ -123,6 +122,7 @@ export default function MapAnalytics() {
         style: "mapbox://styles/mapbox/streets-v12",
         center: [-110.9559, 29.0729],
         zoom: 10,
+        accessToken: TOKEN,
       });
 
       map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
