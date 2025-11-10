@@ -77,7 +77,7 @@ const TreeRegisterForm: React.FC<TreeRegisterFormProps> = ({
   const loadColonias = async () => {
     if (coloniasCache.current) return coloniasCache.current;
     try {
-      const res = await fetch(import.meta.env.BASE_URL + 'colonias_hermosillo.json", { cache: "no-store" });
+      const res = await fetch(`${import.meta.env.BASE_URL}colonias_hermosillo.json`", { cache: 'no-store' });
       coloniasCache.current = await res.json();
     } catch {
       coloniasCache.current = null;
@@ -433,4 +433,5 @@ const TreeRegisterForm: React.FC<TreeRegisterFormProps> = ({
 };
 
 export default TreeRegisterForm;
+
 
