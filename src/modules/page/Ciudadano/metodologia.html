@@ -1,0 +1,215 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MetodologÃ­a - Hermosillo Tree Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* Fallback styles para asegurar que el header sea visible */
+    .header {
+      display: flex !important;
+      background: #2D5016 !important;
+      min-height: 80px !important;
+      padding: 12px 20px !important;
+      align-items: center !important;
+      justify-content: space-between !important;
+      width: 100% !important;
+      position: relative !important;
+      z-index: 1000 !important;
+    }
+    
+    .main-nav {
+      display: flex !important;
+      gap: 16px !important;
+    }
+    
+    .main-nav a {
+      color: #A4C3B2 !important;
+      text-decoration: none !important;
+      padding: 6px 12px !important;
+      border-radius: 6px !important;
+    }
+    
+    .main-nav a:hover,
+    .main-nav a.active {
+      background: rgba(255,255,255,0.1) !important;
+      color: #FEFCF3 !important;
+    }
+    
+    .site-title {
+      color: #FEFCF3 !important;
+      font-weight: 700 !important;
+      font-size: 1.2rem !important;
+    }
+    
+    .site-tagline {
+      color: #A4C3B2 !important;
+      font-size: 0.75rem !important;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo-section">
+      <img src="icon.svg" alt="Logo Hermosillo Parks" class="logo">
+      <div>
+        <div class="site-title">Hermosillo Tree Map</div>
+        <div class="site-tagline">Explora y cuida el bosque urbano de Hermosillo</div>
+      </div>
+    </div>
+    <nav class="main-nav">
+      <a href="index.html">Mapa</a>
+      <a href="metodologia.html" class="active">MetodologÃ­a</a>
+      <a href="mis-arboles.html">Mis Ãrboles</a>
+      <a href="aprender.html">Aprender</a>
+      <a href="grupos.html">Grupos</a>
+    </nav>
+    <div class="header-controls">
+      <a href="index.html" class="ctrl back-to-map">ðŸ—ºï¸ Volver al Mapa</a>
+    </div>
+  </header>
+
+  <div class="page-container">
+    <main class="page-content">
+      <div class="methodology-content">
+        <div class="methodology-header">
+          <h1>ðŸŒ³ MetodologÃ­a CientÃ­fica</h1>
+          <p class="subtitle">Comprende los mÃ©todos cientÃ­ficos y tecnologÃ­as utilizadas para el monitoreo y evaluaciÃ³n de la cobertura arbÃ³rea urbana de Hermosillo</p>
+        </div>
+
+        <div class="methodology-section">
+          <h2><span class="icon">ðŸ”¬</span>Marco MetodolÃ³gico</h2>
+          <p>El proyecto HMO TREE utiliza una metodologÃ­a cientÃ­fica basada en los estÃ¡ndares internacionales de <strong>i-Tree Eco</strong>, desarrollado por el Servicio Forestal de Estados Unidos (USFS). Esta herramienta permite cuantificar la estructura, funciÃ³n y valor de los bosques urbanos.</p>
+          
+          <div class="highlight-box">
+            <strong>i-Tree Eco</strong> es un software de modelado revisado por pares que utiliza datos de campo del bosque urbano local junto con datos meteorolÃ³gicos locales por hora para cuantificar la estructura, funciÃ³n y valor del bosque urbano.
+          </div>
+        </div>
+
+        <div class="methodology-section">
+          <h2><span class="icon">ðŸ“Š</span>RecolecciÃ³n de Datos</h2>
+          
+          <h3>1. Inventario de Campo</h3>
+          <p>Cada Ã¡rbol es inventariado siguiendo protocolos estandarizados que incluyen:</p>
+          <ul>
+            <li><strong>IdentificaciÃ³n taxonÃ³mica:</strong> Especie, gÃ©nero y familia</li>
+            <li><strong>Mediciones dendromÃ©tricas:</strong> DiÃ¡metro a la altura del pecho (DAP), altura total, diÃ¡metro de copa</li>
+            <li><strong>EvaluaciÃ³n de condiciÃ³n:</strong> Estado fitosanitario, porcentaje de copa faltante, transparencia de copa</li>
+            <li><strong>GeolocalizaciÃ³n:</strong> Coordenadas GPS precisas (Â±3 metros)</li>
+            <li><strong>Contexto urbano:</strong> Tipo de uso de suelo, distancia a edificaciones, tipo de superficie</li>
+          </ul>
+
+          <h3>2. Datos Ambientales</h3>
+          <div class="methodology-grid">
+            <div class="grid-item">
+              <h4>ðŸŒ¡ï¸ Datos MeteorolÃ³gicos</h4>
+              <p>Temperatura, humedad relativa, precipitaciÃ³n, velocidad del viento y radiaciÃ³n solar de estaciones meteorolÃ³gicas locales (CONAGUA).</p>
+            </div>
+            <div class="grid-item">
+              <h4>ðŸ­ Calidad del Aire</h4>
+              <p>Concentraciones de PM2.5, PM10, Oâ‚ƒ, NOâ‚‚, SOâ‚‚ y CO de la Red de Monitoreo AtmosfÃ©rico de Sonora.</p>
+            </div>
+            <div class="grid-item">
+              <h4>ðŸ’° Datos EconÃ³micos</h4>
+              <p>Precios locales de energÃ­a elÃ©ctrica (CFE), agua potable (Agua de Hermosillo) y costos de manejo de aguas pluviales.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="methodology-section">
+          <h2><span class="icon">ðŸ§®</span>Modelos de CÃ¡lculo</h2>
+          
+          <h3>AbsorciÃ³n de COâ‚‚</h3>
+          <p>La absorciÃ³n anual de diÃ³xido de carbono se calcula utilizando ecuaciones alomÃ©tricas especÃ­ficas por especie:</p>
+          <div class="highlight-box">
+            <strong>COâ‚‚ = (Biomasa Ã— 0.5 Ã— 3.67) + Crecimiento_anual</strong><br>
+            Donde 0.5 es la fracciÃ³n de carbono en biomasa seca y 3.67 es la relaciÃ³n molecular COâ‚‚/C.
+          </div>
+
+          <h3>IntercepciÃ³n de Agua Pluvial</h3>
+          <p>Se modela la capacidad de intercepciÃ³n basada en:</p>
+          <ul>
+            <li>Ãrea de copa y densidad foliar</li>
+            <li>Patrones de precipitaciÃ³n locales</li>
+            <li>CaracterÃ­sticas especÃ­ficas de la especie</li>
+            <li>DuraciÃ³n e intensidad de eventos de lluvia</li>
+          </ul>
+
+          <h3>Beneficios EcosistÃ©micos</h3>
+          <div class="benefits-grid">
+            <div class="benefit-card">
+              <div class="benefit-icon">ðŸ’§</div>
+              <h4>GestiÃ³n HÃ­drica</h4>
+              <p>InterceptaciÃ³n de agua pluvial, reducciÃ³n de escorrentÃ­a y mejora de la infiltraciÃ³n del suelo.</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">ðŸŒ¡ï¸</div>
+              <h4>RegulaciÃ³n TÃ©rmica</h4>
+              <p>ReducciÃ³n del efecto isla de calor urbano mediante sombra y evapotranspiraciÃ³n.</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">ðŸƒ</div>
+              <h4>Calidad del Aire</h4>
+              <p>FiltraciÃ³n de contaminantes atmosfÃ©ricos y producciÃ³n de oxÃ­geno.</p>
+            </div>
+            <div class="benefit-card">
+              <div class="benefit-icon">ðŸ¡</div>
+              <h4>Eficiencia EnergÃ©tica</h4>
+              <p>Ahorro en costos de climatizaciÃ³n de edificios cercanos.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="methodology-section">
+          <h2><span class="icon">ðŸ“š</span>Referencias y Recursos</h2>
+          
+          <h3>DocumentaciÃ³n Oficial i-Tree</h3>
+          <div class="resource-links">
+            <a href="https://www.itreetools.org/tools/i-tree-eco" class="resource-link" target="_blank">
+              ðŸ”— i-Tree Eco - Sitio Oficial
+            </a>
+            <a href="https://www.fs.usda.gov/research/treesearch/55635" class="resource-link" target="_blank">
+              ðŸ“„ Manual de Campo i-Tree Eco v6.0
+            </a>
+          </div>
+          
+          <h3>InvestigaciÃ³n CientÃ­fica</h3>
+          <div class="resource-links">
+            <a href="https://www.fs.usda.gov/research/treesearch/62021" class="resource-link" target="_blank">
+              ðŸ”¬ MetodologÃ­a de ValoraciÃ³n EconÃ³mica
+            </a>
+            <a href="https://www.fao.org/urban-forestry/en/" class="resource-link" target="_blank">
+              ðŸŒ FAO - Silvicultura Urbana
+            </a>
+          </div>
+
+          <h3>Contexto Nacional</h3>
+          <div class="resource-links">
+            <a href="https://www.conafor.gob.mx/" class="resource-link" target="_blank">
+              ðŸ‡²ðŸ‡½ CONAFOR - ComisiÃ³n Nacional Forestal
+            </a>
+            <a href="https://www.gob.mx/semarnat" class="resource-link" target="_blank">
+              ðŸŒ¿ SEMARNAT - SecretarÃ­a de Medio Ambiente
+            </a>
+          </div>
+        </div>
+
+        <div class="methodology-footer">
+          <div class="credits">
+            <h3>CrÃ©ditos del Proyecto</h3>
+            <p><strong>Desarrollado por:</strong> HMOTREE - Hermosillo Urban Forest Initiative</p>
+            <p><strong>MetodologÃ­a cientÃ­fica:</strong> i-Tree Eco (USDA Forest Service)</p>
+            <p><strong>AdaptaciÃ³n local:</strong> Universidad de Sonora, Programa de Silvicultura Urbana</p>
+            <p><strong>Ãšltima actualizaciÃ³n:</strong> Julio 2025</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
+

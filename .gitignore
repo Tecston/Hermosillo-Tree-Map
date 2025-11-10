@@ -1,0 +1,31 @@
+# Entornos
+.env
+.env.*
+!.env.example
+
+# Node / Frontend
+node_modules/
+.next/
+dist/
+build/
+coverage/
+npm-debug.log*
+yarn-error.log*
+.pnp.cjs
+.pnp.loader.mjs
+
+# Python / Backend
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+.envrc
+
+# Sistemas / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp

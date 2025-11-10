@@ -1,0 +1,171 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+/* Terceros: pon Leaflet en components para que utilidades de Tailwind lo puedan sobrescribir */
+@import "leaflet/dist/leaflet.css" layer(components);
+@import "leaflet-draw/dist/leaflet.draw.css" layer(components);
+
+/* --- Tu theme/tokens y estilos (tal como los pusiste) --- */
+@theme {
+  --font-logo: "Montserrat", sans-serif;
+
+  /* Paleta base (oklch) */
+  --color-brand-blue: oklch(0.6525 0.141166 236.3808);
+  --color-brand-blue-darker: oklch(0.6029 0.1135 236.3808);
+
+  /* Azules (escala) */
+  --color-blue-1: oklch(99.2% 0.0037 236);
+  --color-blue-2: oklch(98% 0.0084 236);
+  --color-blue-3: oklch(95.9% 0.0239 236);
+  --color-blue-4: oklch(93.3% 0.037 236);
+  --color-blue-5: oklch(90% 0.0483 236);
+  --color-blue-6: oklch(86% 0.0593 236);
+  --color-blue-7: oklch(80.5% 0.0734 236);
+  --color-blue-8: oklch(72.7% 0.0987 236);
+  --color-blue-9: oklch(60.3% 0.114 236);
+  --color-blue-10: oklch(56% 0.114 236);
+  --color-blue-11: oklch(53.7% 0.114 236);
+  --color-blue-12: oklch(33.6% 0.049 236);
+
+  --color-blue-a1: color(display-p3 0.0235 0.5137 1 / 0.016);
+  --color-blue-a2: color(display-p3 0.0196 0.5569 0.9137 / 0.044);
+  --color-blue-a3: color(display-p3 0.0118 0.5255 0.9608 / 0.099);
+  --color-blue-a4: color(display-p3 0.0039 0.5255 0.9529 / 0.157);
+  --color-blue-a5: color(display-p3 0.0039 0.4941 0.8745 / 0.216);
+  --color-blue-a6: color(display-p3 0.0039 0.4627 0.8 / 0.291);
+  --color-blue-a7: color(display-p3 0.0039 0.4275 0.749 / 0.389);
+  --color-blue-a8: color(display-p3 0 0.4118 0.7216 / 0.534);
+  --color-blue-a9: color(display-p3 0 0.3569 0.6118 / 0.718);
+  --color-blue-a10: color(display-p3 0 0.3333 0.5647 / 0.769);
+  --color-blue-a11: color(display-p3 0 0.3216 0.5451 / 0.797);
+  --color-blue-a12: color(display-p3 0 0.1059 0.1804 / 0.863);
+
+  --color-blue-contrast: #fff;
+  --color-blue-surface: color(display-p3 0.9451 0.9725 0.9922 / 0.8);
+  --color-blue-indicator: var(--color-blue-9);
+  --color-blue-track: var(--color-blue-9);
+
+  /* Grises (escala) */
+  --color-gray-1: oklch(99.1% 0.0015 277.7);
+  --color-gray-2: oklch(98.2% 0.003 277.7);
+  --color-gray-3: oklch(95.6% 0.0045 277.7);
+  --color-gray-4: oklch(93.1% 0.0061 277.7);
+  --color-gray-5: oklch(91% 0.0077 277.7);
+  --color-gray-6: oklch(88.8% 0.0093 277.7);
+  --color-gray-7: oklch(85.3% 0.0117 277.7);
+  --color-gray-8: oklch(79.4% 0.016 277.7);
+  --color-gray-9: oklch(64.6% 0.0165 277.7);
+  --color-gray-10: oklch(61% 0.0161 277.7);
+  --color-gray-11: oklch(50.3% 0.0139 277.7);
+  --color-gray-12: oklch(24.1% 0.0099 277.7);
+
+  --color-gray-a1: color(display-p3 0.0235 0.0235 0.349 / 0.012);
+  --color-gray-a2: color(display-p3 0.0235 0.0235 0.349 / 0.024);
+  --color-gray-a3: color(display-p3 0.0078 0.0667 0.2549 / 0.063);
+  --color-gray-a4: color(display-p3 0.0118 0.051 0.2157 / 0.095);
+  --color-gray-a5: color(display-p3 0.0039 0.0392 0.2 / 0.122);
+  --color-gray-a6: color(display-p3 0.0039 0.0275 0.1804 / 0.153);
+  --color-gray-a7: color(display-p3 0.0078 0.0275 0.1843 / 0.197);
+  --color-gray-a8: color(display-p3 0.0039 0.0314 0.1765 / 0.275);
+  --color-gray-a9: color(display-p3 0.0039 0.0196 0.1059 / 0.455);
+  --color-gray-a10: color(display-p3 0.0039 0.0196 0.098 / 0.499);
+  --color-gray-a11: color(display-p3 0 0.0078 0.0588 / 0.616);
+  --color-gray-a12: color(display-p3 0 0.0039 0.0275 / 0.883);
+
+  --color-gray-contrast: #ffffff;
+  --color-gray-surface: color(display-p3 1 1 1 / 80%);
+  --color-gray-indicator: var(--color-gray-9);
+  --color-gray-track: var(--color-gray-9);
+
+  /* Tokens de UI propios */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-contrast: var(--contrast);
+}
+
+/* ===========================
+   Defaults / Reset ligero
+   =========================== */
+@layer base {
+  *,
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/* ===========================
+   Color scheme y variables de app
+   =========================== */
+:root {
+  /* Fondo oscuro por defecto (puedes ajustar si quieres light default) */
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --contrast: black;
+
+  background-color: #1e2938; /* fondo del documento */
+  color: var(--foreground);
+
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+
+  /* Oculta scrollbar en navegadores que respeten esta prop */
+  scrollbar-width: thin;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Si el sistema está en dark, puedes invertir o ajustar tokens */
+    --background: #0a0a0a;
+    --foreground: #ffffff;
+    --contrast: #000;
+    scrollbar-width: none;
+  }
+}
+
+/* ===========================
+   Tipografías
+   =========================== */
+.prose {
+  /* Typography plugin respeta las variables; personaliza si gustas */
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-links: var(--color-brand-blue);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-code: var(--foreground);
+}
+
+/* ===========================
+   Leaflet pequeños ajustes opcionales
+   =========================== */
+.leaflet-container {
+  font-family: var(--font-sans);
+}
+
+/* ===========================
+   Compat layer para el cambio de border default en v4
+   (puedes removerlo si defines bordes explícitos en tus componentes)
+   =========================== */
+@layer base {
+  [class*="border"],
+  [class^="border"] {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+/* ===========================
+   Ejemplo de logo con Montserrat
+   =========================== */
+.logo {
+  font-family: var(--font-logo);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
