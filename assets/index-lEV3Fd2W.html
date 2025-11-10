@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hermosillo Tree Map - Explora el Bosque Urbano</title>
+  <meta name="description" content="Mapa interactivo del bosque urbano de Hermosillo. Explora árboles, beneficios ecológicos y únete al cuidado ambiental.">
+
+  <!-- Fuentes e íconos -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+  <!-- Mapbox & Charts -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+
+  <!-- (Opcional) Foto 360 -->
+  <link rel="stylesheet" href="https://unpkg.com/photo-sphere-viewer@6/dist/photo-sphere-viewer.css" />
+  <script src="https://unpkg.com/three@0.150.1/build/three.min.js"></script>
+  <script src="https://unpkg.com/photo-sphere-viewer@6/dist/photo-sphere-viewer.js"></script>
+
+  <!-- Estilos propios -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Leyenda LST mínima -->
+  <style>
+    .lst-legend{
+      position:absolute; left:16px; bottom:16px; z-index:10;
+      background:#fff; padding:8px 10px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.15);
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      min-width:220px
+    }
+    .lst-legend .bar{ height:10px; border-radius:6px; margin:6px 0 }
+    .lst-legend .scale{ display:flex; justify-content:space-between; font-size:.9rem; color:#333 }
+  </style>
+
+  <!-- === Tema blanco + tipografía/íconos #545454 + animaciones naranja/blanco === -->
+  <style>
+    :root{
+      --bg:#ffffff;
+      --fg:#545454;                /* Texto e íconos */
+      --accent-50:#fffaf5;         /* Tonalidades naranja↔blanco para animaciones */
+      --accent-100:#fff3e6;
+      --accent-200:#ffe4c7;
+      --accent-300:#ffd1a6;
+      --accent-400:#ffb56e;
+      --accent-500:#ff7a00;        /* Naranja principal */
+      --accent-600:#e76b00;
+      --border:#efefef;
+      --shadow:0 6px 20px rgba(0,0,0,.08);
+    }
+
+    html,body{
+      background:var(--bg);
+      color:var(--fg);
+      font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      accent-color:var(--accent-500);
+    }
+
+    /* Asegurar color de texto e íconos en todo */
+    body, h1,h2,h3,h4,h5,h6, p, span, label, small, strong, em, a, th, td,
+    .stat-label, .stat-number, .benefit-label, .benefit-value, .benefit-value-usd,
+    .total-label, .total-value, .legend-note, .methodology-note {
+      color:var(--fg) !important;
+    }
+    i, .fa, .fas, .far, .fal, .fab { color: currentColor !important; }
+
+    /* Contenedores y paneles sobre blanco */
+    .main-header, .header-container, .app-container, .section-content,
+    .info-panel, .modal, .stats-overview, .stats-grid, .stat-card,
+    .benefit-card, .module-card, .event-card, .impact-card, .search-container,
+    .trees-grid > *, .benefits-dashboard, .methodology-block, .community-content {
+      background:var(--bg) !important;
+    }
+
+    /* Bordes y sombras ligeras */
+    .info-panel, .stat-card, .benefit-card, .module-card, .event-card, .impact-card, .search-container {
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+
+    /* Header */
+    .main-header{
+      position:sticky; top:0; z-index:50;
+      background:var(--bg); border-bottom:1px solid var(--border);
+      backdrop-filter:saturate(120%) blur(4px);
+    }
+    .header-container{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px; padding:10px 16px;
+    }
+    .brand-logos img.logo-ayto{ height:40px; display:block; }
+
+    /* Mapa */
+    #map{ width:100%; height:100%; }
+    .map-container{ position:relative; }
+    .leaflet-map, .mapboxgl-canvas{ border-radius:14px; }
+
+    /* Leyenda LST corrige color de texto */
+    .lst-legend .scale{ color:var(--fg) !important; }
+
+    /* ================== Botones con animación naranja↔blanco ================== */
+    @keyframes gradient-pan {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .nav-btn, .action-btn, .module-btn, .cta-btn, .search-close{
+        transition:none !important; animation:none !important;
+      }
+    }
+
+    .nav-btn, .action-btn, .module-btn, .cta-btn, .search-close {
+      --btn-bg: linear-gradient(120deg, var(--accent-50), var(--bg) 45%, var(--accent-200));
+      --btn-bd: var(--accent-300);
+      position:relative;
+      display:inline-flex; align-items:center; gap:.5rem;
+      padding:.65rem .9rem;
+      background:var(--bg);
+      color:var(--fg) !important;
+      border:1px solid var(--btn-bd);
+      border-radius:12px;
+      cursor:pointer;
+      transition: box-shadow .25s ease, transform .06s ease, border-color .25s ease, background .25s ease;
+      -webkit-tap-highlight-color:transparent;
+      overflow:hidden;
+    }
+    .nav-btn i, .action-btn i, .module-btn i, .cta-btn i{ font-size:1rem; }
+
+    .nav-btn::before, .action-btn::before, .module-btn::before, .cta-btn::before, .search-close::before {
+      content:"";
+      position:absolute; inset:0;
+      background:var(--btn-bg);
+      background-size:200% 200%;
+      opacity:0;
+      transition:opacity .25s ease;
+      z-index:0;
+    }
+    .nav-btn > *, .action-btn > *, .module-btn > *, .cta-btn > *, .search-close > *{ position:relative; z-index:1; }
+
+    .nav-btn:hover::before,
+    .action-btn:hover::before,
+    .module-btn:hover::before,
+    .cta-btn:hover::before,
+    .search-close:hover::before{
+      opacity:1;
+      animation: gradient-pan 2.2s ease infinite;
+    }
+    .nav-btn:hover, .action-btn:hover, .module-btn:hover, .cta-btn:hover, .search-close:hover{
+      border-color:var(--accent-400);
+      box-shadow:0 6px 18px rgba(255,122,0,.18);
+    }
+    .nav-btn:active, .action-btn:active, .module-btn:active, .cta-btn:active, .search-close:active{
+      transform: translateY(1px);
+    }
+    .nav-btn.active{
+      border-color:var(--accent-500);
+    }
+    .nav-btn.active::before{
+      opacity:1;
+      background:linear-gradient(135deg, var(--accent-100), var(--bg) 40%, var(--accent-300));
+      background-size:180% 180%;
+      animation: gradient-pan 3s ease infinite;
+    }
+
+    /* Botón principal de CTA */
+    .cta-btn{
+      padding:.85rem 1.1rem; font-weight:600;
+      border-width:1.5px;
+    }
+
+    /* Inputs y selects */
+    input[type="text"], select {
+      color:var(--fg);
+      background:var(--bg);
+      border:1px solid var(--accent-200);
+      border-radius:10px;
+      padding:.6rem .75rem;
+      outline:none;
+      transition:border-color .25s ease, box-shadow .25s ease;
+    }
+    input[type="text"]::placeholder{ color:#8b8b8b; }
+    input[type="text"]:focus, select:focus{
+      border-color:var(--accent-400);
+      box-shadow:0 0 0 3px rgba(255,122,0,.18);
+    }
+
+    /* Cierre modal/buscador */
+    .search-overlay{ background:rgba(255,255,255,0.88); backdrop-filter: blur(4px); }
+    .search-header{ border-bottom:1px solid var(--border); }
+
+    /* Panel lateral info */
+    .info-panel.modal{
+      color:var(--fg);
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:var(--bg);
+    }
+    .panel-header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:12px 14px; border-bottom:1px solid var(--border);
+    }
+    .modal-close{
+      background:transparent; border:1px solid var(--accent-300);
+      border-radius:10px; padding:.4rem .55rem; cursor:pointer;
+      color:var(--fg);
+      transition:border-color .25s ease, box-shadow .25s ease;
+    }
+    .modal-close:hover{ border-color:var(--accent-400); box-shadow:0 4px 12px rgba(255,122,0,.16); }
+    .panel-content{ padding:14px; }
+
+    /* Tarjetas */
+    .stat-card, .benefit-item, .impact-card {
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:var(--bg);
+    }
+
+    /* Iconos de beneficios */
+    .benefit-icon{ color:var(--fg) !important; background:transparent !important; }
+
+    /* Insignias */
+    .event-type, .tree-id{
+      color:var(--fg); background:var(--accent-100);
+      border:1px solid var(--accent-200);
+      border-radius:999px; padding:.15rem .5rem; display:inline-block;
+    }
+
+    /* Enlaces */
+    a{ color:var(--fg); text-decoration-color: var(--accent-400); }
+    a:hover{ text-decoration-color: var(--accent-500); }
+
+    /* Focus accesible */
+    :focus-visible{
+      outline:3px solid var(--accent-400);
+      outline-offset:2px;
+      border-radius:10px;
+    }
+
+    /* Navegación */
+    .main-nav{ display:flex; gap:.5rem; flex-wrap:wrap; }
+    .nav-btn span{ font-weight:600; font-size:.95rem; }
+
+    /* Asa y backdrop del panel (color claro) */
+    .details-handle{
+      background:var(--bg); color:var(--fg); border:1px solid var(--border);
+      border-radius:12px; box-shadow:var(--shadow);
+    }
+    .modal-backdrop{ background:rgba(255,255,255,.6); }
+
+    /* Encabezados de secciones */
+    .section-header h2{ color:var(--fg); }
+    .section-header p{ color:#6a6a6a; }
+
+    /* Grids */
+    .benefits-dashboard, .learning-modules, .trees-grid{
+      gap:16px;
+    }
+
+    /* Reset de botones */
+    button{ font-family:inherit; color:inherit; background:transparent; }
+  </style>
+
+  <!-- === Ajuste de layout: mapa debajo del header, sin scroll global, responsivo === -->
+  <style>
+  /* ===== Reducir (o eliminar) el espacio blanco bajo el header ===== */
+  :root{
+    /* Ajusta este valor: 0px = sin espacio, 8–12px = espacio pequeño */
+    --gap-bajo-header: 0px;
+  }
+
+  /* Quita márgenes/paddings que crean la franja blanca */
+  .main-header{ margin-bottom: 0 !important; }
+  .app-container{ padding-top: var(--gap-bajo-header) !important; }
+  #map-section{ margin-top: 0 !important; padding-top: 0 !important; }
+  #map-section .map-container{ margin-top: 0 !important; }
+</style>
+
+
+</head>
+<style id="fit-map">
+  :root{
+    --header-h: 64px;        /* lo recalcula tu JS */
+    --gap-bajo-header: 0px;  /* 0px = pegado; sube a 8–12px si quieres un respiro */
+  }
+
+  /* 1) CERO scroll global (y además ocultamos cualquier scrollbar residual) */
+  html, body{
+    height:100%;
+    margin:0;
+    overflow: clip !important;             /* más estricto que hidden en muchos navegadores */
+    -ms-overflow-style: none;              /* IE/Edge */
+    scrollbar-width: none;                 /* Firefox */
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar{ width:0; height:0; }
+
+  /* 2) Header fijo y app pegada debajo ocupando TODO el viewport */
+  .main-header{ position:fixed; top:0; left:0; right:0; z-index:50; }
+  .app-container{
+    position:fixed;
+    top: calc(var(--header-h) + var(--gap-bajo-header));
+    left:0; right:0; bottom:0;
+    overflow:hidden;                      /* el app no produce scroll global */
+  }
+
+  /* 3) Solo la sección activa existe; las demás no ocupan espacio */
+  .app-section{ position:absolute; inset:0; display:none; overflow:hidden; }
+  .app-section.active{ display:block; }
+  .app-section:not(#map-section){
+    overflow:auto;                        /* cuando abras otras secciones, scrollean dentro */
+    -webkit-overflow-scrolling:touch;
+  }
+
+  /* 4) Mapa a 100% del espacio disponible */
+  #map-section .map-container{ position:relative; width:100%; height:100%; margin:0 !important; padding:0 !important; overflow:hidden; }
+  #map.leaflet-map{ position:absolute; inset:0; width:100%; height:100%; }
+
+  /* 5) Panel lateral con scroll propio (NO global) */
+  #details-modal{
+    position:absolute; top:16px; right:16px; bottom:16px;
+    width:min(420px, 92vw);
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  .panel-header{ flex:0 0 auto; }
+  .panel-content{ flex:1 1 auto; overflow:auto; -webkit-overflow-scrolling:touch; }
+
+  /* 6) Backdrop y asa dentro del mapa */
+  .modal-backdrop{ position:absolute; inset:0; }
+  .details-handle{ position:absolute; top:50%; left:16px; transform:translateY(-50%); }
+
+  /* 7) El overlay de búsqueda no empuja el layout */
+  .search-overlay{ position:fixed; inset:0; display:none; }
+  .search-overlay.active{ display:block; }
+</style>
+
+<body>
+  <!-- ====================================================================== -->
+  <!-- HEADER -->
+  <!-- ====================================================================== -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-logos">
+          <a href="/dashboard/modules/login" aria-label="Volver al inicio de sesión">
+            <img src="../Hermosilloooooo1.png" alt="H. Ayuntamiento de Hermosillo" class="logo-ayto" />
+          </a>
+        </div>
+      </div>
+
+      <nav class="main-nav">
+        <button class="nav-btn active" data-section="map">
+          <i class="fas fa-map"></i><span>Mapa</span>
+        </button>
+        <button class="nav-btn" data-section="explore">
+          <i class="fas fa-search"></i><span>Explorar</span>
+        </button>
+        <button class="nav-btn" data-section="methodology">
+          <i class="fas fa-microscope"></i><span>Metodología</span>
+        </button>
+        <button class="nav-btn" data-section="learn">
+          <i class="fas fa-graduation-cap"></i><span>Aprender</span>
+        </button>
+        <button class="nav-btn" data-section="community">
+          <i class="fas fa-users"></i><span>Comunidad</span>
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <!-- 🔎 Buscar -->
+        <button class="action-btn search-btn" title="Buscar">
+          <i class="fas fa-search"></i>
+        </button>
+        <!-- 🔥 LST (Islas de calor) -->
+        <button class="action-btn lst-btn" title="Islas de calor (LST)">
+          <i class="fas fa-temperature-high"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ====================================================================== -->
+  <!-- APP -->
+  <!-- ====================================================================== -->
+  <main class="app-container">
+    <!-- ================================ MAPA ================================ -->
+    <section id="map-section" class="app-section active">
+      <div class="map-container">
+        <div id="map" class="leaflet-map"></div>
+
+        <!-- Asa para reabrir panel -->
+        <div id="details-handle" class="details-handle hidden" title="Abrir detalles">
+          <i class="fas fa-chevron-left"></i>
+        </div>
+
+        <!-- Backdrop del panel -->
+        <div id="modal-backdrop" class="modal-backdrop hidden" aria-hidden="true"></div>
+
+        <!-- Panel lateral -->
+        <aside id="details-modal" class="info-panel modal open" aria-modal="true" role="dialog">
+          <div class="panel-header">
+            <h3 id="panel-title">Estadísticas del Bosque Urbano</h3>
+            <button class="modal-close" aria-label="Cerrar detalles"><i class="fas fa-times"></i></button>
+          </div>
+
+          <div class="panel-content">
+            <!-- Vista general -->
+            <div id="overview-content" class="panel-view active">
+              <div class="stats-overview">
+                <div class="stat-card large">
+                  <div class="stat-number" id="total-trees">—</div>
+                  <div class="stat-label">Árboles Mapeados</div>
+                </div>
+                <div class="stats-grid">
+                  <div class="stat-card">
+                    <div class="stat-number" id="total-species">—</div>
+                    <div class="stat-label">Especies Nativas</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="stat-number" id="total-benefits">—</div>
+                    <div class="stat-label">Valor Anual USD</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="benefits-section">
+                <h4><i class="fas fa-leaf"></i> Beneficios Ecológicos Anuales</h4>
+                <p class="methodology-note">Metodología U.S. Forest Service</p>
+
+                <div class="benefit-items">
+                  <div class="benefit-item">
+                    <div class="benefit-icon water"><i class="fas fa-tint"></i></div>
+                    <div class="benefit-details">
+                      <div class="benefit-value" id="stormwater-total">—</div>
+                      <div class="benefit-label">Agua de lluvia interceptada</div>
+                      <div class="benefit-value-usd" id="stormwater-value">—</div>
+                    </div>
+                  </div>
+                  <div class="benefit-item">
+                    <div class="benefit-icon energy"><i class="fas fa-bolt"></i></div>
+                    <div class="benefit-details">
+                      <div class="benefit-value" id="energy-total">—</div>
+                      <div class="benefit-label">Energía conservada</div>
+                      <div class="benefit-value-usd" id="energy-value">—</div>
+                    </div>
+                  </div>
+                  <div class="benefit-item">
+                    <div class="benefit-icon air"><i class="fas fa-wind"></i></div>
+                    <div class="benefit-details">
+                      <div class="benefit-value" id="air-total">—</div>
+                      <div class="benefit-label">Contaminantes del aire removidos</div>
+                      <div class="benefit-value-usd" id="air-value">—</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="total-benefits">
+                  <div class="total-label">Valor Total de Beneficios Anuales</div>
+                  <div class="total-value" id="total-annual-benefits">—</div>
+                </div>
+              </div>
+
+              <div class="species-section">
+                <h4><i class="fas fa-seedling"></i> Especies Más Comunes</h4>
+                <div id="common-species-list"></div>
+              </div>
+
+              <div class="species-legend">
+                <h4><i class="fas fa-palette"></i> Leyenda de Especies</h4>
+                <div id="species-color-legend"></div>
+                <div class="legend-note">
+                  <i class="fas fa-info-circle"></i>
+                  <span>Los colores representan diferentes familias botánicas del desierto sonorense</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Árbol seleccionado -->
+            <div id="tree-content" class="panel-view">
+              <div id="tree-360-container" style="width:100%; height:300px; margin-bottom:1rem; display:none;"></div>
+
+              <div class="tree-header">
+                <div class="tree-photo">
+                  <img id="tree-image" src="" alt="">
+                  <div class="tree-id" id="tree-id-badge">—</div>
+                </div>
+                <div class="tree-info">
+                  <h3 id="tree-species-name">—</h3>
+                  <p id="tree-scientific-name">—</p>
+                  <div class="tree-location" id="tree-location">—</div>
+                </div>
+              </div>
+
+              <div class="tree-details">
+                <div class="detail-row"><span class="label">Diámetro:</span><span class="value" id="tree-diameter">—</span></div>
+                <div class="detail-row"><span class="label">Altura:</span><span class="value" id="tree-height">—</span></div>
+                <div class="detail-row"><span class="label">Copa:</span><span class="value" id="tree-crown">—</span></div>
+                <div class="detail-row"><span class="label">Plantado:</span><span class="value" id="tree-year">—</span></div>
+                <div class="detail-row"><span class="label">Estado:</span><span class="value" id="tree-health">—</span></div>
+              </div>
+
+              <div class="tree-benefits">
+                <h4>Beneficios Ecológicos de Este Árbol</h4>
+                <div class="tree-benefit-items" id="individual-benefits"></div>
+              </div>
+            </div>
+
+            <!-- Colonia seleccionada -->
+            <div id="colonia-content" class="panel-view"></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ============================== EXPLORAR =============================== -->
+    <section id="explore-section" class="app-section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2>Explora el Bosque Urbano</h2>
+          <p>Descubre las especies nativas de Hermosillo y sus características</p>
+        </div>
+
+        <div class="explore-filters">
+          <div class="filter-group">
+            <label>Buscar por especie:</label>
+            <input type="text" id="species-search" placeholder="Ej: Mezquite, Palo Verde...">
+          </div>
+          <div class="filter-group">
+            <label>Filtrar por tamaño:</label>
+            <select id="size-filter">
+              <option value="all">Todos los tamaños</option>
+              <option value="small">Pequeños (&lt; 5m)</option>
+              <option value="medium">Medianos (5-10m)</option>
+              <option value="large">Grandes (&gt; 10m)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Estado de salud:</label>
+            <select id="health-filter">
+              <option value="all">Todos</option>
+              <option value="excellent">Excelente</option>
+              <option value="good">Buena</option>
+              <option value="fair">Regular</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="trees-grid" id="trees-grid"></div>
+      </div>
+    </section>
+
+    <!-- ============================== BENEFICIOS ============================= -->
+    <section id="benefits-section" class="app-section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2>Beneficios Ecológicos</h2>
+          <p>Impacto medioambiental del bosque urbano según metodología U.S. Forest Service</p>
+        </div>
+
+        <div class="benefits-dashboard">
+          <div class="benefit-card water">
+            <div class="benefit-visual">
+              <img src="gestion-agua-lluvia.jpg" alt="Gestión de Agua de Lluvia" class="benefit-img" loading="lazy" width="600" height="338">
+            </div>
+            <div class="benefit-info">
+              <h3>Gestión de Agua de Lluvia</h3>
+              <p>Los árboles interceptan agua de lluvia, reduciendo la escorrentía y previniendo inundaciones urbanas.</p>
+            </div>
+          </div>
+
+          <div class="benefit-card energy">
+            <div class="benefit-visual">
+              <picture>
+                <source srcset="ahorro-energetico.webp" type="image/webp">
+                <img src="ahorro-energetico.webp" alt="Ahorro Energético" class="benefit-img" loading="lazy" width="600" height="338">
+              </picture>
+            </div>
+            <div class="benefit-info">
+              <h3>Ahorro Energético</h3>
+              <p>La sombra de los árboles reduce la necesidad de aire acondicionado en edificios cercanos.</p>
+            </div>
+          </div>
+
+          <div class="benefit-card air">
+            <div class="benefit-visual">
+              <img src="calidad-aire.jpg" alt="Calidad del Aire" class="benefit-img" loading="lazy" width="600" height="338">
+            </div>
+            <div class="benefit-info">
+              <h3>Calidad del Aire</h3>
+              <p>Los árboles filtran contaminantes del aire, mejorando la salud respiratoria de la comunidad.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================== METODOLOGÍA ============================ -->
+    <section id="methodology-section" class="app-section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2>Metodología Científica</h2>
+          <p>Conoce cómo registramos árboles y calculamos beneficios ecológicos usando estándares del U.S. Forest Service</p>
+        </div>
+
+        <div class="methodology-content">
+          <!-- Proceso de Registro de Árboles -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-clipboard-list"></i>
+              <h3>1. Proceso de Registro de Árboles</h3>
+            </div>
+            <div class="method-content">
+              <div class="process-steps">
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-search-location"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Localización en Campo</h4>
+                    <p>Cada árbol se geolocaliza usando GPS de alta precisión (±3 metros) para crear coordenadas exactas que permiten su identificación única en el mapa.</p>
+                  </div>
+                </div>
+
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-ruler"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Medición Física</h4>
+                    <p>Se mide el <strong>Diámetro a la Altura del Pecho (DAP)</strong> usando cinta diamétrica a 1.3m del suelo, y la <strong>altura total</strong> con clinómetro digital para determinar el volumen del árbol.</p>
+                  </div>
+                </div>
+
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-leaf"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Identificación Botánica</h4>
+                    <p>Especialistas en botánica identifican la especie usando características morfológicas (hojas, corteza, frutos) y referencias taxonómicas para especies de Sonora.</p>
+                  </div>
+                </div>
+
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-camera"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Documentación Visual</h4>
+                    <p>Se toman fotografías del árbol completo, hojas, corteza y entorno para crear un registro visual que permite verificación posterior y estudios fenológicos.</p>
+                  </div>
+                </div>
+
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-database"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Digitalización</h4>
+                    <p>Los datos se ingresan en sistemas GIS especializados, donde se validan coordenadas, se verifican mediciones y se asigna un ID único a cada árbol del inventario.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cálculo de Beneficios Ecológicos -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-calculator"></i>
+              <h3>2. Cálculo de Beneficios Ecológicos</h3>
+            </div>
+            <div class="method-content">
+              <p class="method-intro">Utilizamos las ecuaciones alométricas del <strong>U.S. Forest Service i-Tree Model</strong>, adaptadas para el clima árido de Sonora:</p>
+
+              <div class="benefit-calculation">
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-tint"></i>
+                    <h4>Interceptación de Agua de Lluvia</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> I = LAI × P × C × A
+                    </div>
+                    <div class="variables">
+                      <p><strong>I</strong> = Interceptación anual (litros)</p>
+                      <p><strong>LAI</strong> = Índice de Área Foliar (específico por especie)</p>
+                      <p><strong>P</strong> = Precipitación anual promedio (340mm en Hermosillo)</p>
+                      <p><strong>C</strong> = Coeficiente de interceptación (0.15-0.25)</p>
+                      <p><strong>A</strong> = Área de copa (π × radio²)</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Los árboles interceptan agua de lluvia con sus hojas y ramas antes de que llegue al suelo, reduciendo la escorrentía urbana y recargando acuíferos localmente.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-bolt"></i>
+                    <h4>Ahorro Energético</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> E = (Sombra × CDD × EF) + (ET × HDD × HF)
+                    </div>
+                    <div class="variables">
+                      <p><strong>E</strong> = Ahorro energético anual (kWh)</p>
+                      <p><strong>Sombra</strong> = Área de sombra proyectada (m²)</p>
+                      <p><strong>CDD</strong> = Grados-día de enfriamiento (3,200 en Hermosillo)</p>
+                      <p><strong>EF</strong> = Factor de eficiencia de enfriamiento (0.18 kWh/°C·día)</p>
+                      <p><strong>ET</strong> = Evapotranspiración (litros/día)</p>
+                      <p><strong>HDD</strong> = Grados-día de calentamiento (850 en Hermosillo)</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Los árboles reducen temperatura ambiente mediante sombra directa y enfriamiento evaporativo, disminuyendo la demanda energética de edificios cercanos hasta en un 30%.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-wind"></i>
+                    <h4>Purificación del Aire</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> AP = Σ(Pi × Vi × LAI × Ti)
+                    </div>
+                    <div class="variables">
+                      <p><strong>AP</strong> = Contaminantes removidos anualmente (kg)</p>
+                      <p><strong>Pi</strong> = Concentración del contaminante i (μg/m³)</p>
+                      <p><strong>Vi</strong> = Velocidad de deposición (m/s por contaminante)</p>
+                      <p><strong>LAI</strong> = Índice de Área Foliar</p>
+                      <p><strong>Ti</strong> = Tiempo de exposición anual (8,760 horas)</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Se calculan: PM2.5, PM10, O₃, NO₂, SO₂ y CO. Los árboles filtran partículas y gases tóxicos mediante absorción foliar y deposición en superficie de hojas.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-dollar-sign"></i>
+                    <h4>Valor Económico Total</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> VT = VA + VE + VC + VR
+                    </div>
+                    <div class="variables">
+                      <p><strong>VT</strong> = Valor total anual (MXN)</p>
+                      <p><strong>VA</strong> = Valor interceptación agua × $0.015/litro</p>
+                      <p><strong>VE</strong> = Valor ahorro energético × $3.50/kWh</p>
+                      <p><strong>VC</strong> = Valor purificación aire × $850/kg CO₂eq</p>
+                      <p><strong>VR</strong> = Valor reducción temperatura × $50/°C reducido</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Los valores económicos se basan en tarifas locales de servicios públicos de Hermosillo y costos de mitigación climática del IPCC, expresados en pesos mexicanos (2024).</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Validación y Limitaciones -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-shield-alt"></i>
+              <h3>3. Validación y Limitaciones</h3>
+            </div>
+            <div class="method-content">
+              <div class="validation-grid">
+                <div class="validation-card">
+                  <h4>Control de Calidad</h4>
+                  <ul>
+                    <li>Verificación cruzada de identificaciones botánicas</li>
+                    <li>Validación GPS con cartografía oficial de INEGI</li>
+                    <li>Revisión estadística de datos atípicos</li>
+                    <li>Auditorías periódicas de campo (cada 6 meses)</li>
+                  </ul>
+                </div>
+
+                <div class="validation-card">
+                  <h4>Limitaciones Reconocidas</h4>
+                  <ul>
+                    <li>Modelos calibrados para clima templado, adaptados para Sonora</li>
+                    <li>Variabilidad estacional no capturada completamente</li>
+                    <li>Efectos de sequía prolongada en árboles estresados</li>
+                    <li>Interacciones microclimáticas urbanas simplificadas</li>
+                  </ul>
+                </div>
+
+                <div class="validation-card">
+                  <h4>Precisión Estimada</h4>
+                  <ul>
+                    <li>Interceptación de agua: ±15% (validado con pluviómetros)</li>
+                    <li>Ahorro energético: ±20% (comparado con medidores)</li>
+                    <li>Purificación aire: ±25% (rango típico i-Tree)</li>
+                    <li>Valoración económica: ±30% (volatilidad de precios)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Referencias Científicas -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-book"></i>
+              <h3>4. Referencias Científicas</h3>
+            </div>
+            <div class="method-content">
+              <div class="references-list">
+                <div class="reference-item">
+                  <strong>Nowak, D.J., Hirabayashi, S., Bodine, A., & Greenfield, E.</strong> (2014).
+                  Tree and forest effects on air quality and human health in the United States.
+                  <em>Environmental Pollution, 193</em>, 119-129.
+                </div>
+
+                <div class="reference-item">
+                  <strong>McPherson, E.G., van Doorn, N., & de Goede, J.</strong> (2016).
+                  The structure, function and value of urban forests in California communities.
+                  <em>Urban Forestry & Urban Greening, 28</em>, 43-53.
+                </div>
+
+                <div class="reference-item">
+                  <strong>Villegas, J.C., Breshears, D.D., Zou, C.B., & Law, D.J.</strong> (2010).
+                  Ecohydrological controls of soil evaporation in deciduous drylands.
+                  <em>Vadose Zone Journal, 9</em>(3), 422-431.
+                </div>
+
+                <div class="reference-item">
+                  <strong>Gobierno de Sonora, IMPLAN Hermosillo</strong> (2022).
+                  Plan Municipal de Desarrollo Urbano de Hermosillo 2018-2030.
+                  <em>Actualización de Infraestructura Verde</em>.
+                </div>
+
+                <div class="reference-item">
+                  <strong>USDA Forest Service</strong> (2023).
+                  i-Tree User's Manual v6.0: Tools for assessing and managing forests and community trees.
+                  <em>Northern Research Station, Syracuse, NY</em>.
+                </div>
+              </div>
+
+              <div class="methodology-footer">
+                <p><strong>Última actualización:</strong> Diciembre 2024</p>
+                <p><strong>Próxima revisión:</strong> Junio 2025</p>
+                <p><strong>Contacto técnico:</strong> metodologia@hermosillotreemap.mx</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+      <!-- ============================== APRENDIZAJE & EVENTOS ============================== -->
+      <section id="learn-section" class="app-section">
+        <div class="section-content edu">
+          <div class="section-header">
+            <h2>Aprendizaje & Eventos</h2>
+            <p>Capacítate con cursos breves y participa en actividades del bosque urbano.</p>
+          </div>
+
+          <!-- Cursos -->
+          <div class="edu-panel is-active" id="edu-courses" role="tabpanel">
+            <div class="edu-grid">
+
+              <article class="edu-card" style="--img-pos:100% 10%; --media-ratio: 16/20;">
+                 <figure class="edu-media">
+                    <img src="../CLIMATHON.jpg" alt="Climathon Hermosillo" class="edu-img" loading="lazy">
+                  </figure>
+
+                  <div class="edu-body">
+                    <h3 class="edu-title">Climathon Hermosillo</h3>
+                    <p class="edu-text">Únete al evento de acción climática más grande. 15–16 de octubre, Villa Toscana.</p>
+
+                    <div class="edu-meta">
+                      <span class="edu-chip"><i class="fas fa-calendar"></i> 15–16 OCT • 09:00–19:00</span>
+                      <span class="edu-chip"><i class="fas fa-map-marker-alt"></i> Eventos Villa Toscana</span>
+                      <span class="edu-chip"><i class="fas fa-bolt"></i> Reto: Energía sostenible</span>
+                    </div>
+
+                    <div class="edu-actions">
+                      <a
+                        class="cta-btn"
+                        href="https://www.instagram.com/p/DNlvS41SZg6/?utm_source=ig_web_copy_link&igsh=ZWxrMmptMnY0Mmxn"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Inscribirme al Climathon (se abre en una pestaña nueva)"
+                      >Inscribirme</a>
+                    </div>
+                  </div>
+              </article>
+
+              <!-- Evento: Alianzas por la innovación -->
+            <article class="edu-card is-tall" style="--img-pos:50% 15%; --media-ratio: 2q/2;">
+              <figure class="edu-media">
+                <!-- cambia la imagen si tienes una propia -->
+                <img src="../FORO.jpg"
+                    alt="Encuentro de innovación y sostenibilidad en Hermosillo"
+                    class="edu-img" loading="lazy">
+              </figure>
+              <div class="edu-body">
+                <h3 class="edu-title">Encuentro de innovación y sostenibilidad</h3>
+                <p class="edu-text">
+                  Juntos gobierno, el sector privado y académico seguimos trabajando para consolidar
+                  a Hermosillo como un líder nacional en innovación y sostenibilidad.
+                </p>
+                <div class="edu-meta">
+                  <span class="edu-chip"><i class="fas fa-calendar"></i> 15–16 OCT</span>
+                  <span class="edu-chip"><i class="fas fa-map-marker-alt"></i> Villa Toscana</span>
+                  <span class="edu-chip"><i class="fas fa-info-circle"></i> Evento especial</span>
+                </div>
+                <div class="edu-actions">
+                  <a class="cta-btn"
+                    href="https://www.instagram.com/p/DNl0JA4y03N/?utm_source=ig_web_copy_link&igsh=MWJuaWxhNjM3cjhuNQ=="
+                    target="_blank" rel="noopener noreferrer">
+                    Más información
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Evento: Entrega de plantas nativas (Vivero Municipal) -->
+            <article class="edu-card is-tall" style="--img-pos:10% 10%; --media-ratio:1.2/1.5;">
+              <figure class="edu-media">
+                <!-- Cambia la ruta a la imagen local del flyer -->
+                <img src="../ARBOL.jpg"
+                    alt="Entrega de plantas nativas en el Vivero Municipal"
+                    class="edu-img" loading="lazy">
+              </figure>
+              <div class="edu-body">
+                <h3 class="edu-title">Entrega de plantas nativas</h3>
+                <p class="edu-text">
+                  Vivero Municipal. Regístrate previamente para recibir tu planta nativa.
+                </p>
+                <div class="edu-meta">
+                  <span class="edu-chip"><i class="fas fa-calendar"></i> Sáb 05 SEPT 2025 • 09:00–17:00</span>
+                  <span class="edu-chip"><i class="fas fa-map-marker-alt"></i> Av. Morelia esq. Calle de la Palma, Col. Casa Blanca</span>
+                  <span class="edu-chip"><i class="fas fa-tree"></i> 1 árbol por persona</span>
+                </div>
+                <div class="edu-actions">
+                  <a class="cta-btn"
+                    href="https://forms.gle/9zd4fKQ4vmaBqcjU7"
+                    target="_blank" rel="noopener noreferrer">
+                    Registrarme
+                  </a>
+                  <a class="cta-btn"
+                    href="https://welovecities.org/es/city/hermosillo/"
+                    target="_blank" rel="noopener noreferrer">
+                    Votar por Hermosillo
+                  </a>
+                </div>
+              </div>
+            </article>
+
+            <!-- Evento: NASA Space Apps Sonora 2025 -->
+            <article class="edu-card is-tall" style="--img-pos:50% 22%; --media-ratio: 1/1;">
+              <figure class="edu-media">
+                <!-- cambia la imagen si tienes una propia -->
+                <img src="../NASA.jpg"
+                    alt="NASA Space Apps Challenge Sonora 2025"
+                    class="edu-img" loading="lazy">
+              </figure>
+              <div class="edu-body">
+                <h3 class="edu-title">NASA Space Apps Sonora 2025</h3>
+                <p class="edu-text">
+                  3–5 de octubre, Tec de Monterrey Campus Sonora Norte. 48 horas de innovación con
+                  datos abiertos de la NASA. Evento gratuito. Sede con mentor de la NASA presencial.
+                </p>
+                <div class="edu-meta">
+                  <span class="edu-chip"><i class="fas fa-calendar"></i> 3–5 OCT</span>
+                  <span class="edu-chip"><i class="fas fa-map-marker-alt"></i> Tec de Monterrey, Sonora Norte</span>
+                  <span class="edu-chip"><i class="fas fa-ticket-alt"></i> Gratuito</span>
+                </div>
+                <div class="edu-actions">
+                  <a class="cta-btn" href="https://spaceappssonora.org/" target="_blank" rel="noopener noreferrer">
+                    Regístrate
+                  </a>
+                </div>
+              </div>
+            </article>
+
+
+            </div>
+          </div>
+
+          <!-- Banda CTA empresas -->
+          <aside class="edu-cta-band">
+            <div class="edu-cta-text">
+              <h3>¿Tu empresa quiere capacitarse?</h3>
+              <p>Programas de onboarding verde para equipos: diagnóstico, taller y certificación.</p>
+            </div>
+            <button
+                class="cta-btn"
+                type="button"
+                onclick="window.open('https://www.instagram.com/ciudata.mx?utm_source=ig_web_button_share_sheet&igsh=MTFma3JkYW82MHNsdw==','_blank','noopener');"
+              >
+                Solicitar información <i class="fas fa-arrow-right"></i>
+              </button>
+
+          </aside>
+        </div>
+      </section>
+
+    <!-- ============================== COMUNIDAD ============================== -->
+   <section id="community-section" class="app-section">
+  <div class="section-content">
+    <div class="section-header">
+      <h2>Comunidad Verde</h2>
+      <p>Únete a eventos de plantación y cuidado del bosque urbano de Hermosillo</p>
+    </div>
+
+    <div class="community-grid">
+      <!-- 1. Caminantes del Desierto -->
+      <article class="community-card"
+               style="--g1:#ff7aa2; --g2:#ff0066; --media-w:420px; --ratio:10/3; --img-pos:50% 40%;">
+        <figure class="community-media">
+          <img src="../CDC.jpg" alt="Caminantes del Desierto" class="community-img" loading="lazy">
+        </figure>
+        <div class="community-body">
+          <h3 class="community-title">Caminantes del Desierto</h3>
+          <p class="community-text">
+            Conservación y restauración del desierto de Sonora. Voluntariados, senderismo y educación ambiental.
+          </p>
+          <div class="community-links">
+            <a class="community-chip" href="https://caminantesdeldesierto.org/" target="_blank" rel="noopener">
+              <i class="fas fa-globe"></i> Sitio
+            </a>
+            <a class="community-chip" href="https://www.instagram.com/cddesierto" target="_blank" rel="noopener">
+              <i class="fab fa-instagram"></i> Instagram
+            </a>
+            <a class="community-chip" href="https://www.facebook.com/colectivo.caminantes.del.desierto" target="_blank" rel="noopener">
+              <i class="fab fa-facebook"></i> Facebook
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Reduce Tu Huella HMO -->
+      <article class="community-card" style="--g1:#fefffe; --g2:#fefffe; --card-w:880px; --media-w:500px; --ratio:16/9;">
+        <figure class="community-media">
+          <img src="../HUELLA.png">
+        </figure>
+        <div class="community-body">
+          <h3 class="community-title">Reduce Tu Huella HMO</h3>
+          <p class="community-text">
+            Activistas ambientales enfocados en limpieza de ciudad y playa, reforestación, reciclaje y apoyo a grupos vulnerables.
+          </p>
+          <div class="community-links">
+            <a class="community-chip" href="https://www.instagram.com/reducetuhuella_hmo" target="_blank" rel="noopener">
+              <i class="fab fa-instagram"></i> Instagram
+            </a>
+            <a class="community-chip" href="https://www.facebook.com/reducetuhuellahmo" target="_blank" rel="noopener">
+              <i class="fab fa-facebook"></i> Facebook
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Cultura Verde Pamela -->
+      <article class="community-card" style="--g1:#bde0fe; --g2:#4895ef; --card-w:880px; --media-w:2000px; --ratio:6.5/9;">
+        <figure class="community-media">
+          <img src="../VERDE.jpg">
+        </figure>
+        <div class="community-body">
+          <h3 class="community-title">Cultura Verde</h3>
+          <p class="community-text">
+            Educación ambiental, campañas y recursos para una vida sostenible. Blog y contenidos para docentes, familias y comunidad.
+          </p>
+          <div class="community-links">
+            <a class="community-chip" href="https://www.instagram.com/culturaverdeac?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">
+              <i class="fab fa-instagram"></i> Instagram
+            </a>
+            <a class="community-chip" href="https://culturaverdepamela.wordpress.com/" target="_blank" rel="noopener">
+              <i class="fas fa-globe"></i> Sitio
+            </a>
+            <a class="community-chip" href="https://www.facebook.com/CulturaVerdeAC" target="_blank" rel="noopener">
+              <i class="fab fa-facebook"></i> Facebook
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Hermosillo Plogging -->
+      <article class="community-card" style="--g1:#f977b9; --g2:#f977b9; --card-w:880px; --media-w:420px; --ratio:16/9;">
+        <figure class="community-media">
+          <img src="../HP.jpg">
+        </figure>
+        <div class="community-body">
+          <h3 class="community-title">Hermosillo Plogging</h3>
+          <p class="community-text">
+            Ciudadanos que combinan actividad física al aire libre con recolección de residuos para mantener limpios los espacios.
+          </p>
+          <div class="community-links">
+            <a class="community-chip" href="https://www.instagram.com/plogging_hermosillo" target="_blank" rel="noopener">
+              <i class="fab fa-instagram"></i> Instagram
+            </a>
+            <a class="community-chip" href="https://www.threads.com/@plogging_hermosillo?xmt=AQF0y5tmUUN_cYDAfwdkVN9UwZYVLSqCOH8la_m8XNx4Tlg" target="_blank" rel="noopener">
+              <i class="fas fa-link"></i> Threads
+            </a>
+            <a class="community-chip" href="https://www.facebook.com/plogginghmo/?locale=es_LA" target="_blank" rel="noopener">
+              <i class="fab fa-facebook"></i> Facebook
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Disco Sopa Pitic -->
+      <article class="community-card" style="--g1:#fff5bd; --g2:#fff5bd; --card-w:880px; --media-w:320px; --ratio:12/9;">
+       <figure class="community-media">
+          <img src="../DS.jpg">
+        </figure>        <div class="community-body">
+          <h3 class="community-title">Disco Sopa Pitic</h3>
+          <p class="community-text">
+            Rescate de alimentos y sensibilización para reducir el desperdicio. Actividades comunitarias y educación alimentaria.
+          </p>
+          <div class="community-links">
+            <a class="community-chip" href="https://www.instagram.com/discosopapitic" target="_blank" rel="noopener">
+              <i class="fab fa-instagram"></i> Instagram
+            </a>
+            <a class="community-chip" href="https://www.facebook.com/discosopapitic/" target="_blank" rel="noopener">
+              <i class="fab fa-facebook"></i> Facebook
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Cumbre Climática Juvenil Sonora -->
+      <article class="community-card" style="--g1:#cdeffd; --g2:#00b4d8; --card-w:880px; --media-w:420px; --ratio:16/9;">
+         <figure class="community-media">
+          <img src="../HP.jpg">
+        </figure>
+        <div class="community-body">
+          <h3 class="community-title">Cumbre Climática Juvenil Sonora</h3>
+          <p class="community-text">
+            Encuentro de jóvenes por el clima en Sonora para formación, colaboración y acción climática.
+          </p>
+          <div class="community-links">
+            <a class="community-chip" href="https://www.instagram.com/ccj_sonora/" target="_blank" rel="noopener">
+              <i class="fab fa-instagram"></i> Instagram
+            </a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+   </section>
+  </main>
+
+  <!-- ============================== BUSCADOR ================================ -->
+  <div id="search-overlay" class="search-overlay">
+    <div class="search-container">
+      <div class="search-header">
+        <input type="text" id="global-search" placeholder="Buscar árboles, especies, ubicaciones...">
+        <button class="search-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+
+  <!-- ============================== SCRIPTS ================================ -->
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiaXZhbmRlcCIsImEiOiJjbTJudjZwbHIwYW00MmtvaTRhdzYyMDgyIn0.8aLktwoo3snu8FRYYCcY2Q';
+  </script>
+
+  <!-- Callback seguro ANTES de cargar Google Maps; script.js lo sobreescribe -->
+  <script>
+    window.initApp = window.initApp || function(){ console.log('Google Maps listo (placeholder)'); };
+  </script>
+
+  <!-- Google Maps (opcional para Street View) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCAoosluNsGYELxhzV6-ZkLSYVw4IOr--A&loading=async&callback=initApp" async defer></script>
+
+  <!-- (Opcional) Copia local del navegador de GeoRaster si no usas bundler -->
+  <!-- <script src="/libs/georaster.browser.min.js"></script> -->
+
+  <!-- Tu lógica (ESM). Usa defer/ESM para cargar después del DOM -->
+  <script type="module" src="script.js"></script>
+
+  <!-- Ajuste dinámico de altura del header y resize del mapa -->
+  <script>
+    (function(){
+      function setHeaderH(){
+        const header = document.querySelector('.main-header');
+        const h = header ? header.offsetHeight : 64;
+        document.documentElement.style.setProperty('--header-h', h + 'px');
+      }
+      function bumpResize(){
+        // Notifica a Mapbox/Leaflet para recalcular
+        window.dispatchEvent(new Event('resize'));
+      }
+      window.addEventListener('load', () => {
+        setHeaderH();
+        // doble ajuste por si las fuentes/íconos cambian el alto
+        setTimeout(() => { setHeaderH(); bumpResize(); }, 100);
+        bumpResize();
+      });
+      window.addEventListener('resize', () => { setHeaderH(); bumpResize(); });
+
+      // Observa cambios de tamaño del header (responsive)
+      const header = document.querySelector('.main-header');
+      if ('ResizeObserver' in window && header){
+        const ro = new ResizeObserver(() => { setHeaderH(); bumpResize(); });
+        ro.observe(header);
+      }
+    })();
+  </script>
+  <style>
+    /* Sube el mapa N px hacia el header (negativo = se pega más) */
+    :root{ --gap-bajo-header: -59px; } /* prueba -8, -12, -16 */
+  </style>
+
+</body>
+</html>

@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <base href="/hmotree/">
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Hermosillo Tree Map - Explora el Bosque Urbano</title>
+  <meta name="description" content="Mapa interactivo del bosque urbano de Hermosillo. Explora árboles, beneficios ecológicos y únete al cuidado ambiental.">
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  
+    <!-- Map & Charts -->
+  <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet"/>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Photo Sphere Viewer -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/photo-sphere-viewer@6/dist/photo-sphere-viewer.css"
+  />
+  <script src="https://unpkg.com/three@0.150.1/build/three.min.js"></script>
+  <script src="https://unpkg.com/photo-sphere-viewer@6/dist/photo-sphere-viewer.js"></script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css"/>
+    
+</head>
+<body>
+  <!-- ============================================================================ -->
+  <!-- HEADER PROFESIONAL -->
+  <!-- ============================================================================ -->
+  <header class="main-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="logo">
+          <i class="fas fa-tree"></i>
+        </div>
+        <div class="brand-text">
+          <h1>Hermosillo Tree Map</h1>
+          <p>Bosque Urbano de Sonora</p>
+        </div>
+      </div>
+      
+      <nav class="main-nav">
+        <button class="nav-btn active" data-section="map">
+          <i class="fas fa-map"></i>
+          <span>Mapa</span>
+        </button>
+        <button class="nav-btn" data-section="explore">
+          <i class="fas fa-search"></i>
+          <span>Explorar</span>
+        </button>
+        <button class="nav-btn" data-section="benefits">
+          <i class="fas fa-leaf"></i>
+          <span>Beneficios</span>
+        </button>
+        <button class="nav-btn" data-section="methodology">
+          <i class="fas fa-microscope"></i>
+          <span>Metodología</span>
+        </button>
+        <button class="nav-btn" data-section="learn">
+          <i class="fas fa-graduation-cap"></i>
+          <span>Aprender</span>
+        </button>
+        <button class="nav-btn" data-section="community">
+          <i class="fas fa-users"></i>
+          <span>Comunidad</span>
+        </button>
+      </nav>
+      
+      <div class="header-actions">
+        <button class="action-btn search-btn">
+          <i class="fas fa-search"></i>
+        </button>
+        <button class="action-btn filter-btn">
+          <i class="fas fa-filter"></i>
+        </button>
+        <button class="action-btn panel-toggle">
+          <i class="fas fa-info-circle"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================================ -->
+  <!-- CONTENEDOR PRINCIPAL -->
+  <!-- ============================================================================ -->
+  <main class="app-container">
+    
+    <!-- ============================================================================ -->
+    <!-- SECCIÓN: MAPA INTERACTIVO -->
+    <!-- ============================================================================ -->
+    <section id="map-section" class="app-section active">
+  <div class="map-container">
+    <div id="map" class="leaflet-map"></div>
+     
+    <!-- Panel Lateral -->
+    <aside class="info-panel">
+      <div class="panel-header">
+        <h3 id="panel-title">Estadísticas del Bosque Urbano</h3>
+      </div>
+      
+      <div class="panel-content">
+        <!-- Contenido dinámico según selección -->
+        <div id="overview-content" class="panel-view active">
+          <div class="stats-overview">
+            <div class="stat-card large">
+              <div class="stat-number" id="total-trees">—</div>
+              <div class="stat-label">Árboles Mapeados</div>
+            </div>
+            
+            <div class="stats-grid">
+              <div class="stat-card">
+                <div class="stat-number" id="total-species">—</div>
+                <div class="stat-label">Especies Nativas</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-number" id="total-benefits">—</div>
+                <div class="stat-label">Valor Anual USD</div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Beneficios Ecológicos -->
+          <div class="benefits-section">
+            <h4><i class="fas fa-leaf"></i> Beneficios Ecológicos Anuales</h4>
+            <p class="methodology-note">Metodología U.S. Forest Service</p>
+            
+            <div class="benefit-items">
+              <div class="benefit-item">
+                <div class="benefit-icon water">
+                  <i class="fas fa-tint"></i>
+                </div>
+                <div class="benefit-details">
+                  <div class="benefit-value" id="stormwater-total">—</div>
+                  <div class="benefit-label">Agua de lluvia interceptada</div>
+                  <div class="benefit-value-usd" id="stormwater-value">—</div>
+                </div>
+              </div>
+              
+              <div class="benefit-item">
+                <div class="benefit-icon energy">
+                  <i class="fas fa-bolt"></i>
+                </div>
+                <div class="benefit-details">
+                  <div class="benefit-value" id="energy-total">—</div>
+                  <div class="benefit-label">Energía conservada</div>
+                  <div class="benefit-value-usd" id="energy-value">—</div>
+                </div>
+              </div>
+              
+              <div class="benefit-item">
+                <div class="benefit-icon air">
+                  <i class="fas fa-wind"></i>
+                </div>
+                <div class="benefit-details">
+                  <div class="benefit-value" id="air-total">—</div>
+                  <div class="benefit-label">Contaminantes del aire removidos</div>
+                  <div class="benefit-value-usd" id="air-value">—</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="total-benefits">
+              <div class="total-label">Valor Total de Beneficios Anuales</div>
+              <div class="total-value" id="total-annual-benefits">—</div>
+            </div>
+          </div>
+          
+          <!-- Especies Comunes -->
+          <div class="species-section">
+            <h4><i class="fas fa-seedling"></i> Especies Más Comunes</h4>
+            <div id="common-species-list"></div>
+          </div>
+          
+          <!-- Leyenda de Colores -->
+          <div class="species-legend">
+            <h4><i class="fas fa-palette"></i> Leyenda de Especies</h4>
+            <div id="species-color-legend">
+              <!-- Contenido generado dinámicamente -->
+            </div>
+            <div class="legend-note">
+              <i class="fas fa-info-circle"></i>
+              <span>Los colores representan diferentes familias botánicas del desierto sonorense</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contenido para árbol seleccionado -->
+        <div id="tree-content" class="panel-view">
+          <!-- Visor 360° del árbol -->
+          <div id="tree-360-container" style="width:100%; height:300px; margin-bottom:1rem; display:none;"></div>
+          <div class="tree-header">
+            <div class="tree-photo">
+              <img id="tree-image" src="" alt="">
+              <div class="tree-id" id="tree-id-badge">—</div>
+            </div>
+            <div class="tree-info">
+              <h3 id="tree-species-name">—</h3>
+              <p id="tree-scientific-name">—</p>
+              <div class="tree-location" id="tree-location">—</div>
+            </div>
+          </div>
+          
+          <div class="tree-details">
+            <div class="detail-row">
+              <span class="label">Diámetro:</span>
+              <span class="value" id="tree-diameter">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Altura:</span>
+              <span class="value" id="tree-height">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Copa:</span>
+              <span class="value" id="tree-crown">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Plantado:</span>
+              <span class="value" id="tree-year">—</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Estado:</span>
+              <span class="value" id="tree-health">—</span>
+            </div>
+          </div>
+          
+          <!-- Beneficios del árbol individual -->
+          <div class="tree-benefits">
+            <h4>Beneficios Ecológicos de Este Árbol</h4>
+            <div class="tree-benefit-items" id="individual-benefits">
+              <!-- Contenido dinámico -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</section>
+
+    
+    <!-- ============================================================================ -->
+    <!-- SECCIÓN: EXPLORAR ÁRBOLES -->
+    <!-- ============================================================================ -->
+    <section id="explore-section" class="app-section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2>Explora el Bosque Urbano</h2>
+          <p>Descubre las especies nativas de Hermosillo y sus características</p>
+        </div>
+        
+        <div class="explore-filters">
+          <div class="filter-group">
+            <label>Buscar por especie:</label>
+            <input type="text" id="species-search" placeholder="Ej: Mezquite, Palo Verde...">
+          </div>
+          <div class="filter-group">
+            <label>Filtrar por tamaño:</label>
+            <select id="size-filter">
+              <option value="all">Todos los tamaños</option>
+              <option value="small">Pequeños (&lt; 5m)</option>
+              <option value="medium">Medianos (5-10m)</option>
+              <option value="large">Grandes (&gt; 10m)</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Estado de salud:</label>
+            <select id="health-filter">
+              <option value="all">Todos</option>
+              <option value="excellent">Excelente</option>
+              <option value="good">Buena</option>
+              <option value="fair">Regular</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="trees-grid" id="trees-grid">
+          <!-- Contenido generado dinámicamente -->
+        </div>
+      </div>
+    </section>
+    
+    <!-- ========================================================================= -->
+<!-- SECCIÓN: BENEFICIOS ECOLÓGICOS -->
+<!-- ========================================================================= -->
+<!-- ========================================================================= -->
+<!-- SECCIÓN: BENEFICIOS ECOLÓGICOS -->
+<!-- ========================================================================= -->
+<section id="benefits-section" class="app-section">
+  <div class="section-content">
+    <div class="section-header">
+      <h2>Beneficios Ecológicos</h2>
+      <p>Impacto medioambiental del bosque urbano según metodología U.S. Forest Service</p>
+    </div>
+
+    <div class="benefits-dashboard">
+      <!-- Gestión de Agua de Lluvia -->
+      <div class="benefit-card water">
+        <div class="benefit-visual">
+          <img
+            src="gestion-agua-lluvia.jpg"
+            alt="Gestión de Agua de Lluvia"
+            class="benefit-img"
+            loading="lazy"
+            width="600" height="338"
+          >
+        </div>
+        <div class="benefit-info">
+          <h3>Gestión de Agua de Lluvia</h3>
+          <p>Los árboles interceptan agua de lluvia, reduciendo la escorrentía y previniendo inundaciones urbanas.</p>
+        </div>
+      </div>
+
+      <!-- Ahorro Energético -->
+      <div class="benefit-card energy">
+        <div class="benefit-visual">
+          <picture>
+            <source srcset="ahorro-energetico.webp" type="image/webp">
+            <img src="ahorro-energetico.webp"
+              alt="Ahorro Energético"
+              class="benefit-img"
+              loading="lazy"
+              width="600" height="338"
+            >
+          </picture>
+        </div>
+        <div class="benefit-info">
+          <h3>Ahorro Energético</h3>
+          <p>La sombra de los árboles reduce la necesidad de aire acondicionado en edificios cercanos.</p>
+        </div>
+      </div>
+
+      <!-- Calidad del Aire -->
+      <div class="benefit-card air">
+        <div class="benefit-visual">
+          <img
+            src="calidad-aire.jpg"
+            alt="Calidad del Aire"
+            class="benefit-img"
+            loading="lazy"
+            width="600" height="338"
+          >
+        </div>
+        <div class="benefit-info">
+          <h3>Calidad del Aire</h3>
+          <p>Los árboles filtran contaminantes del aire, mejorando la salud respiratoria de la comunidad.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+    
+    <!-- ============================================================================ -->
+    <!-- SECCIÓN: METODOLOGÍA -->
+    <!-- ============================================================================ -->
+    <section id="methodology-section" class="app-section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2>Metodología Científica</h2>
+          <p>Conoce cómo registramos árboles y calculamos beneficios ecológicos usando estándares del U.S. Forest Service</p>
+        </div>
+        
+        <div class="methodology-content">
+          <!-- Proceso de Registro de Árboles -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-clipboard-list"></i>
+              <h3>1. Proceso de Registro de Árboles</h3>
+            </div>
+            <div class="method-content">
+              <div class="process-steps">
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-search-location"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Localización en Campo</h4>
+                    <p>Cada árbol se geolocaliza usando GPS de alta precisión (±3 metros) para crear coordenadas exactas que permiten su identificación única en el mapa.</p>
+                  </div>
+                </div>
+                
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-ruler"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Medición Física</h4>
+                    <p>Se mide el <strong>Diámetro a la Altura del Pecho (DAP)</strong> usando cinta diamétrica a 1.3m del suelo, y la <strong>altura total</strong> con clinómetro digital para determinar el volumen del árbol.</p>
+                  </div>
+                </div>
+                
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-leaf"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Identificación Botánica</h4>
+                    <p>Especialistas en botánica identifican la especie usando características morfológicas (hojas, corteza, frutos) y referencias taxonómicas para especies de Sonora.</p>
+                  </div>
+                </div>
+                
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-camera"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Documentación Visual</h4>
+                    <p>Se toman fotografías del árbol completo, hojas, corteza y entorno para crear un registro visual que permite verificación posterior y estudios fenológicos.</p>
+                  </div>
+                </div>
+                
+                <div class="step-card">
+                  <div class="step-icon">
+                    <i class="fas fa-database"></i>
+                  </div>
+                  <div class="step-info">
+                    <h4>Digitalización</h4>
+                    <p>Los datos se ingresan en sistemas GIS especializados, donde se validan coordenadas, se verifican mediciones y se asigna un ID único a cada árbol del inventario.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cálculo de Beneficios Ecológicos -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-calculator"></i>
+              <h3>2. Cálculo de Beneficios Ecológicos</h3>
+            </div>
+            <div class="method-content">
+              <p class="method-intro">Utilizamos las ecuaciones alométricas del <strong>U.S. Forest Service i-Tree Model</strong>, adaptadas para el clima árido de Sonora:</p>
+              
+              <div class="benefit-calculation">
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-tint"></i>
+                    <h4>Interceptación de Agua de Lluvia</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> I = LAI × P × C × A
+                    </div>
+                    <div class="variables">
+                      <p><strong>I</strong> = Interceptación anual (litros)</p>
+                      <p><strong>LAI</strong> = Índice de Área Foliar (específico por especie)</p>
+                      <p><strong>P</strong> = Precipitación anual promedio (340mm en Hermosillo)</p>
+                      <p><strong>C</strong> = Coeficiente de interceptación (0.15-0.25)</p>
+                      <p><strong>A</strong> = Área de copa (π × radio²)</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Los árboles interceptan agua de lluvia con sus hojas y ramas antes de que llegue al suelo, reduciendo la escorrentía urbana y recargando acuíferos localmente.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-bolt"></i>
+                    <h4>Ahorro Energético</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> E = (Sombra × CDD × EF) + (ET × HDD × HF)
+                    </div>
+                    <div class="variables">
+                      <p><strong>E</strong> = Ahorro energético anual (kWh)</p>
+                      <p><strong>Sombra</strong> = Área de sombra proyectada (m²)</p>
+                      <p><strong>CDD</strong> = Grados-día de enfriamiento (3,200 en Hermosillo)</p>
+                      <p><strong>EF</strong> = Factor de eficiencia de enfriamiento (0.18 kWh/°C·día)</p>
+                      <p><strong>ET</strong> = Evapotranspiración (litros/día)</p>
+                      <p><strong>HDD</strong> = Grados-día de calentamiento (850 en Hermosillo)</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Los árboles reducen temperatura ambiente mediante sombra directa y enfriamiento evaporativo, disminuyendo la demanda energética de edificios cercanos hasta en un 30%.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-wind"></i>
+                    <h4>Purificación del Aire</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> AP = Σ(Pi × Vi × LAI × Ti)
+                    </div>
+                    <div class="variables">
+                      <p><strong>AP</strong> = Contaminantes removidos anualmente (kg)</p>
+                      <p><strong>Pi</strong> = Concentración del contaminante i (μg/m³)</p>
+                      <p><strong>Vi</strong> = Velocidad de deposición (m/s por contaminante)</p>
+                      <p><strong>LAI</strong> = Índice de Área Foliar</p>
+                      <p><strong>Ti</strong> = Tiempo de exposición anual (8,760 horas)</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Se calculan: PM2.5, PM10, O₃, NO₂, SO₂ y CO. Los árboles filtran partículas y gases tóxicos mediante absorción foliar y deposición en superficie de hojas.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="calc-card">
+                  <div class="calc-header">
+                    <i class="fas fa-dollar-sign"></i>
+                    <h4>Valor Económico Total</h4>
+                  </div>
+                  <div class="calc-content">
+                    <div class="formula">
+                      <strong>Fórmula:</strong> VT = VA + VE + VC + VR
+                    </div>
+                    <div class="variables">
+                      <p><strong>VT</strong> = Valor total anual (MXN)</p>
+                      <p><strong>VA</strong> = Valor interceptación agua × $0.015/litro</p>
+                      <p><strong>VE</strong> = Valor ahorro energético × $3.50/kWh</p>
+                      <p><strong>VC</strong> = Valor purificación aire × $850/kg CO₂eq</p>
+                      <p><strong>VR</strong> = Valor reducción temperatura × $50/°C reducido</p>
+                    </div>
+                    <div class="explanation">
+                      <p>Los valores económicos se basan en tarifas locales de servicios públicos de Hermosillo y costos de mitigación climática del IPCC, expresados en pesos mexicanos (2024).</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Validación y Limitaciones -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-shield-alt"></i>
+              <h3>3. Validación y Limitaciones</h3>
+            </div>
+            <div class="method-content">
+              <div class="validation-grid">
+                <div class="validation-card">
+                  <h4>Control de Calidad</h4>
+                  <ul>
+                    <li>Verificación cruzada de identificaciones botánicas</li>
+                    <li>Validación GPS con cartografía oficial de INEGI</li>
+                    <li>Revisión estadística de datos atípicos</li>
+                    <li>Auditorías periódicas de campo (cada 6 meses)</li>
+                  </ul>
+                </div>
+                
+                <div class="validation-card">
+                  <h4>Limitaciones Reconocidas</h4>
+                  <ul>
+                    <li>Modelos calibrados para clima templado, adaptados para Sonora</li>
+                    <li>Variabilidad estacional no capturada completamente</li>
+                    <li>Efectos de sequía prolongada en árboles estresados</li>
+                    <li>Interacciones microclimáticas urbanas simplificadas</li>
+                  </ul>
+                </div>
+                
+                <div class="validation-card">
+                  <h4>Precisión Estimada</h4>
+                  <ul>
+                    <li>Interceptación de agua: ±15% (validado con pluviómetros)</li>
+                    <li>Ahorro energético: ±20% (comparado con medidores)</li>
+                    <li>Purificación aire: ±25% (rango típico i-Tree)</li>
+                    <li>Valoración económica: ±30% (volatilidad de precios)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Referencias Científicas -->
+          <div class="methodology-block">
+            <div class="method-header">
+              <i class="fas fa-book"></i>
+              <h3>4. Referencias Científicas</h3>
+            </div>
+            <div class="method-content">
+              <div class="references-list">
+                <div class="reference-item">
+                  <strong>Nowak, D.J., Hirabayashi, S., Bodine, A., & Greenfield, E.</strong> (2014). 
+                  Tree and forest effects on air quality and human health in the United States. 
+                  <em>Environmental Pollution, 193</em>, 119-129.
+                </div>
+                
+                <div class="reference-item">
+                  <strong>McPherson, E.G., van Doorn, N., & de Goede, J.</strong> (2016). 
+                  The structure, function and value of urban forests in California communities. 
+                  <em>Urban Forestry & Urban Greening, 28</em>, 43-53.
+                </div>
+                
+                <div class="reference-item">
+                  <strong>Villegas, J.C., Breshears, D.D., Zou, C.B., & Law, D.J.</strong> (2010). 
+                  Ecohydrological controls of soil evaporation in deciduous drylands. 
+                  <em>Vadose Zone Journal, 9</em>(3), 422-431.
+                </div>
+                
+                <div class="reference-item">
+                  <strong>Gobierno de Sonora, IMPLAN Hermosillo</strong> (2022). 
+                  Plan Municipal de Desarrollo Urbano de Hermosillo 2018-2030. 
+                  <em>Actualización de Infraestructura Verde</em>.
+                </div>
+                
+                <div class="reference-item">
+                  <strong>USDA Forest Service</strong> (2023). 
+                  i-Tree User's Manual v6.0: Tools for assessing and managing forests and community trees. 
+                  <em>Northern Research Station, Syracuse, NY</em>.
+                </div>
+              </div>
+              
+              <div class="methodology-footer">
+                <p><strong>Última actualización:</strong> Diciembre 2024</p>
+                <p><strong>Próxima revisión:</strong> Junio 2025</p>
+                <p><strong>Contacto técnico:</strong> metodologia@hermosillotreemap.mx</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================================ -->
+    <!-- SECCIÓN: APRENDER -->
+    <!-- ============================================================================ -->
+    <section id="learn-section" class="app-section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2>Centro de Aprendizaje</h2>
+          <p>Conoce más sobre los árboles urbanos y su importancia para Hermosillo</p>
+        </div>
+        
+        <div class="learning-modules">
+          <div class="module-card">
+            <div class="module-icon">
+              <i class="fas fa-seedling"></i>
+            </div>
+            <h3>Especies Nativas de Sonora</h3>
+            <p>Aprende sobre las especies autóctonas y por qué son importantes para nuestro ecosistema local.</p>
+            <button class="module-btn">Explorar</button>
+          </div>
+          
+          <div class="module-card">
+            <div class="module-icon">
+              <i class="fas fa-tools"></i>
+            </div>
+            <h3>Cuidado de Árboles</h3>
+            <p>Guías prácticas para el cuidado, poda y mantenimiento de árboles urbanos.</p>
+            <button class="module-btn">Aprender</button>
+          </div>
+          
+          <div class="module-card">
+            <div class="module-icon">
+              <i class="fas fa-chart-line"></i>
+            </div>
+            <h3>Metodología Científica</h3>
+            <p>Conoce cómo calculamos los beneficios ecológicos usando estándares internacionales.</p>
+            <button class="module-btn">Ver Metodología</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <!-- ============================================================================ -->
+    <!-- SECCIÓN: COMUNIDAD -->
+    <!-- ============================================================================ -->
+    <section id="community-section" class="app-section">
+      <div class="section-content">
+        <div class="section-header">
+          <h2>Comunidad Verde</h2>
+          <p>Únete a eventos de plantación y cuidado del bosque urbano de Hermosillo</p>
+        </div>
+        
+        <div class="community-content">
+          <div class="events-section">
+            <h3>Próximos Eventos</h3>
+            <div class="event-list">
+              <div class="event-card">
+                <div class="event-date">
+                  <span class="day">15</span>
+                  <span class="month">JUL</span>
+                </div>
+                <div class="event-info">
+                  <h4>Plantación Comunitaria</h4>
+                  <p>Parque Madero - 8:00 AM</p>
+                  <span class="event-type">Plantación</span>
+                </div>
+              </div>
+              
+              <div class="event-card">
+                <div class="event-date">
+                  <span class="day">22</span>
+                  <span class="month">JUL</span>
+                </div>
+                <div class="event-info">
+                  <h4>Taller de Poda</h4>
+                  <p>Centro Cultural - 10:00 AM</p>
+                  <span class="event-type">Educativo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="impact-section">
+            <h3>Tu Impacto</h3>
+            <div class="impact-stats">
+              <div class="impact-card">
+                <div class="impact-number">0</div>
+                <div class="impact-label">Árboles Adoptados</div>
+              </div>
+              <div class="impact-card">
+                <div class="impact-number">0</div>
+                <div class="impact-label">Eventos Asistidos</div>
+              </div>
+              <div class="impact-card">
+                <div class="impact-number">$0</div>
+                <div class="impact-label">Beneficio Ecológico</div>
+              </div>
+            </div>
+            
+            <button class="cta-btn">Únete Ahora</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================================================================ -->
+  <!-- BUSCADOR GLOBAL -->
+  <!-- ============================================================================ -->
+  <div id="search-overlay" class="search-overlay">
+    <div class="search-container">
+      <div class="search-header">
+        <input type="text" id="global-search" placeholder="Buscar árboles, especies, ubicaciones...">
+        <button class="search-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="search-results" id="search-results">
+        <!-- Resultados dinámicos -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // 🔑 Pon aquí tu token real de Mapbox
+  mapboxgl.accessToken = 'pk.eyJ1IjoiaXZhbmRlcCIsImEiOiJjbTJudjZwbHIwYW00MmtvaTRhdzYyMDgyIn0.8aLktwoo3snu8FRYYCcY2Q';
+  </script>
+
+  <!-- Scripts -->
+  <!-- 1) Carga la Google Maps JS API con callback -->
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCAoosluNsGYELxhzV6-ZkLSYVw4IOr--A&callback=initApp"
+  async defer>
+</script>
+
+<!-- 2) Luego tu script -->
+<script src="script.js"></script>
+
+</body>
+</html>
