@@ -1,1 +1,7 @@
-{"routes":[{"handle":"filesystem"},{"src":"/(.*)","dest":"/index.html"}]}
+{
+  "routes": [
+    { "src": "/api/(.*)", "dest": "https://ciudata-backend-f9a11d7c90a1.herokuapp.com/$1" },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
