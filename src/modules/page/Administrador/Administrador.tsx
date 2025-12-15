@@ -5,7 +5,7 @@ export default function Administrador() {
   const { role } = useRole();
 
   // Si quieres abrir otra página, cambia esta ruta relativa a la carpeta Administrador/
-  const startPage = new URL("./index.html", import.meta.url).toString();
+  const startPage = "/vanilla/Administrador/index.html";
 
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden" }}>

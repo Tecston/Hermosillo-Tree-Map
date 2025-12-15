@@ -6,7 +6,7 @@ export default function Ciudadano() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
   // Tu página HTML con el mapa + header + botón
-  const startPage = new URL("./index.html", import.meta.url).toString();
+  const startPage = "/vanilla/Ciudadano/index.html";
 
   // Escucha eventos para abrir/cerrar el modal
   useEffect(() => {

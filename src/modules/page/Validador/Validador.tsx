@@ -5,7 +5,7 @@ export default function Validador() {
   const { role } = useRole();
 
   // Carga el index.html de ESTA carpeta
-  const startPage = new URL("./index.html", import.meta.url).toString();
+  const startPage = "/vanilla/Validador/index.html";
 
   return (
     <div style={{ width: "100vw", height: "100vh", overflow: "hidden" }}>
