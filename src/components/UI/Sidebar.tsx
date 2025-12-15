@@ -15,7 +15,7 @@ const NAV_ITEMS: {
   { type: "map", label: "Mapa",    icon: a => <MapIcon size={20} className={`${a ? "text-blue-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/map" },
   { type: "stats", label: "Estadísticas", icon: a => <LayoutDashboardIcon size={20} className={`${a ? "text-green-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/stats" },
   { type: "map_analytics", label: "Análisis de Zona", icon: a => <Layers size={20} className={`${a ? "text-blue-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/map_analytics" },
-  { type: "trees", label: "Arbolado", icon: a => <TreePine size={20} className={`${a ? "text-green-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/trees" },
+  { type: "trees", label: "Arbolado", icon: a => <TreePine size={20} className={`${a ? "text-green-500" : "text-gray-500"} mr-2`} />, path: "/dashboard/modules/login" },
 ];
 
 const SidebarModal: React.FC = () => {

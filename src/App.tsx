@@ -14,13 +14,13 @@ import PlatformMapView from "./components/Map/PlatformMapView";
 import DataVisualization from "./components/Dashboard/DataVisualization";
 import RequestForm from "./components/Forms/RequestForm";
 import ProjectForm from "./components/Forms/ProjectForm";
-import LandingPage from "./components/Landing/LandingPage";
 import BlogList from "./components/Blog/BlogList";
 import BlogPost from "./components/Blog/BlogPost";
 import MapAnalytics from "./components/MapAnalytics/MapAnalytics";
 
 // Arbolado (demo)
 import TreeDemo from "./components/Map/TreeDemo/TreeDemo";
+import ModulesRoutes from "./modules/routes";
 
 import { AppProvider } from "./context/AppContext";
 import "./index.css";
@@ -49,12 +49,17 @@ export function App() {
     <Router>
       <AppProvider>
         <Routes>
-          {/* Página de inicio */}
-          <Route path="/" element={<LandingPage />} />
+          {/* Entrada principal: redirige al login del modulo */}
+          <Route path="/" element={<Navigate to="/dashboard/modules/login" replace />} />
+
+          <Route path="/dashboard" element={<Navigate to="/dashboard/modules/login" replace />} />
 
           {/* Blog */}
           <Route path="/blog" element={<BlogList />} />
           <Route path="/blog/:id" element={<BlogPost />} />
+
+          {/* Modulo Arbolado (pantalla completa sin shell) */}
+          <Route path="/dashboard/modules/*" element={<ModulesRoutes />} />
 
           {/* Dashboard con sidebar */}
           <Route
@@ -96,6 +101,9 @@ export function App() {
               </div>
             }
           />
+
+          {/* Cualquier otra ruta vuelve al login del modulo */}
+          <Route path="*" element={<Navigate to="/dashboard/modules/login" replace />} />
         </Routes>
       </AppProvider>
     </Router>
